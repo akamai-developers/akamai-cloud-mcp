@@ -53,9 +53,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         tags={"lke"},
         annotations=READ_ONLY,
         description=(
-            "Get one LKE cluster by id with its node pools, API endpoints, control "
-            "plane ACL, and dashboard URL. The kubeconfig is never read or "
-            "returned, even if asked."
+            "Get one LKE cluster by id with its node pools, API endpoints, and "
+            "control plane ACL. The kubeconfig is never read or returned, even if "
+            "asked."
         ),
     )
     def get_lke_cluster(cluster_id: int) -> dict[str, Any]:
@@ -86,14 +86,6 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             result["control_plane_acl"] = acl.get("acl") if isinstance(acl, dict) else acl
         except Exception:
             warnings.append("Could not load control plane ACL.")
-
-        try:
-            dashboard = ctx.client.get(f"/lke/clusters/{cluster_id}/dashboard")
-            result["dashboard_url"] = (
-                dashboard.get("url") if isinstance(dashboard, dict) else None
-            )
-        except Exception:
-            warnings.append("Could not load dashboard URL.")
 
         if warnings:
             result["warnings"] = warnings

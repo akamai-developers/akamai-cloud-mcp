@@ -51,7 +51,8 @@ async def test_get_cluster_composes_subresources(mock_get: None) -> None:
     assert data["pools"][0]["count"] == 3
     assert data["api_endpoints"][0]["endpoint"].endswith(":443")
     assert data["control_plane_acl"]["enabled"] is True
-    assert data["dashboard_url"].endswith("/dashboard")
+    # dashboard URL is intentionally no longer fetched (deprecated endpoint).
+    assert "dashboard_url" not in data
 
 
 async def test_get_cluster_never_returns_kubeconfig(mock_get: None) -> None:

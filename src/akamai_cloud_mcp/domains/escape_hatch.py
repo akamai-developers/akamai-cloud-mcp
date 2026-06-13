@@ -70,6 +70,26 @@ def is_denied(path: str) -> bool:
     return False
 
 
+# The escape hatch returns raw API objects, which can be large. Cap the row count
+# so a broad path does not dump a huge payload into a smaller model's context.
+RAW_ITEM_CAP = 50
+
+
+def cap_raw(resp: Any) -> Any:
+    """Truncate a large `data` list in a raw response, leaving a note."""
+    if isinstance(resp, dict) and isinstance(resp.get("data"), list):
+        rows = resp["data"]
+        if len(rows) > RAW_ITEM_CAP:
+            out = dict(resp)
+            out["data"] = rows[:RAW_ITEM_CAP]
+            out["_truncated"] = (
+                f"Showing {RAW_ITEM_CAP} of {len(rows)} items. Narrow with query "
+                "params (for example page_size) or use a curated tool."
+            )
+            return out
+    return resp
+
+
 def register(mcp: Any, ctx: ServerContext) -> None:
     """Register the escape-hatch tool on the given FastMCP server."""
 
@@ -98,4 +118,4 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             resp = ctx.client.get(normalized, params)
         except Exception as exc:
             raise map_api_error(exc) from exc
-        return scrub(resp)
+        return scrub(cap_raw(resp))

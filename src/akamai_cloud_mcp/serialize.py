@@ -35,6 +35,9 @@ def pick(obj: Any, fields: list[str]) -> dict[str, Any]:
 
 # -- Per-resource allowlists ---------------------------------------------
 
+# Lean by default for model consumption: resolvers (DNS IPs) and
+# placement_group_limits are noise a model never reasons about. Full detail is
+# available through the escape hatch (linode_api_get /regions).
 REGION_FIELDS = [
     "id",
     "label",
@@ -42,27 +45,23 @@ REGION_FIELDS = [
     "capabilities",
     "status",
     "site_type",
-    "resolvers",
-    "placement_group_limits",
 ]
 
 # Type/plan fields. "class" is the API key (the SDK renames it to type_class);
 # raw GET dicts carry "class" directly, so we read both.
+# Lean set for catalog listing. disk/transfer/network_out/addons/successor are
+# dropped from the listing to keep it digestible; estimate_cost reads addons and
+# the full price object from the raw types endpoint, not from this serializer.
 TYPE_FIELDS = [
     "id",
     "label",
     "class",
     "vcpus",
     "memory",
-    "disk",
-    "transfer",
-    "network_out",
     "gpus",
     "accelerated_devices",
     "price",
     "region_prices",
-    "addons",
-    "successor",
 ]
 
 
@@ -98,12 +97,7 @@ VOLUME_FIELDS = [
     "status",
     "linode_id",
     "linode_label",
-    "filesystem_path",
-    "hardware_type",
-    "encryption",
     "tags",
-    "created",
-    "updated",
 ]
 
 
@@ -140,12 +134,7 @@ EVENT_FIELDS = [
     "entity",
     "username",
     "status",
-    "message",
-    "seen",
-    "read",
     "percent_complete",
-    "duration",
-    "rate",
 ]
 
 
@@ -164,7 +153,9 @@ def serialize_event(obj: Any) -> dict[str, Any]:
 
 # -- Networking allowlists -----------------------------------------------
 
-FIREWALL_FIELDS = ["id", "label", "status", "rules", "tags", "entities", "created", "updated"]
+# rules and entities are dropped from the listing (rule sets are large); fetch a
+# single firewall's rules through the escape hatch when needed.
+FIREWALL_FIELDS = ["id", "label", "status", "tags", "created", "updated"]
 IP_FIELDS = [
     "address",
     "type",
@@ -172,10 +163,6 @@ IP_FIELDS = [
     "rdns",
     "region",
     "linode_id",
-    "gateway",
-    "subnet_mask",
-    "prefix",
-    "vpc_nat_1_1",
 ]
 VLAN_FIELDS = ["label", "region", "cidr", "linodes", "created"]
 VPC_FIELDS = ["id", "label", "description", "region", "created", "updated"]

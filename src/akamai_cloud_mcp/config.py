@@ -15,7 +15,9 @@ DEFAULT_HTTP_HOST = "127.0.0.1"
 DEFAULT_HTTP_PATH = "/mcp"
 
 # Cap list_* results so a tool never dumps thousands of rows into model context.
-DEFAULT_MAX_RESULTS = 200
+# Kept low so responses stay digestible for smaller self-hosted models; raise it
+# with --max-results or AKAMAI_MCP_MAX_RESULTS when you need the full set.
+DEFAULT_MAX_RESULTS = 50
 
 # Page size used when paginating the Linode API.
 DEFAULT_PAGE_SIZE = 100

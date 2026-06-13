@@ -179,7 +179,6 @@ def register(mcp: Any, ctx: ServerContext) -> None:
                     "label": entry.get("label"),
                     "hourly": priced["hourly"],
                     "monthly": priced["monthly"],
-                    "default_price": entry.get("price"),
                     "region_prices": entry.get("region_prices"),
                     "source": "live API",
                 }

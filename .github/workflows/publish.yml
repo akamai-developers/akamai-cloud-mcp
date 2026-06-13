@@ -1,0 +1,32 @@
+name: Publish to PyPI
+
+# Publishes to PyPI via trusted publishing (OIDC) when a v* tag is pushed.
+# No token is stored: PyPI trusts this repo + workflow. Configure the matching
+# trusted publisher at https://pypi.org/manage/account/publishing/
+#   owner: akamai-developers  repo: akamai-cloud-mcp
+#   workflow: publish.yml      environment: pypi
+# The `environment:` below MUST match the publisher's "Environment name" field
+# (set it to pypi, or remove this line if you left that field blank on PyPI).
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write # required for PyPI trusted publishing (OIDC)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build sdist and wheel
+        run: uv build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

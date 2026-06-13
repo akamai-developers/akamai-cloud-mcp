@@ -49,6 +49,23 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(result)
 
     @mcp.tool(
+        name="get_object_storage_bucket",
+        tags={"object_storage"},
+        annotations=READ_ONLY,
+        description=(
+            "Get details for a single Object Storage bucket by region and name "
+            "(hostname, S3 endpoint, endpoint type, size, and object count). Access "
+            "keys are never returned."
+        ),
+    )
+    def get_object_storage_bucket(region: str, bucket: str) -> dict[str, Any]:
+        try:
+            resp = ctx.client.get(f"/object-storage/buckets/{region}/{bucket}")
+        except Exception as exc:
+            raise map_api_error(exc) from exc
+        return scrub(serialize_bucket(resp))
+
+    @mcp.tool(
         name="list_object_storage_endpoints",
         tags={"object_storage"},
         annotations=READ_ONLY,

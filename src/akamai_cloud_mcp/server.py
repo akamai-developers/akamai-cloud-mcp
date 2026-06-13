@@ -101,8 +101,8 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--domains",
         default=None,
-        help="Comma-separated domains to load, or 'all' (default). "
-        "Choices: regions,pricing,compute,lke,object_storage,networking,account,escape.",
+        help="Comma-separated domains to load, or 'all' (default). Choices: "
+        "regions,pricing,compute,lke,object_storage,networking,account,dns,databases,escape.",
     )
     parser.add_argument(
         "--max-results",

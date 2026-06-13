@@ -28,7 +28,7 @@ single cohesive API, so the tools live in one server with domain modules inside.
 - **Read-only by construction** - a GET-only client, allowlist serialization,
   and a recursive secret scrub. Enforced by a static scan and a runtime
   HTTP-verb guard, not just convention.
-- **Curated, low-context surface** - 28 tools tuned for tool selection, plus one
+- **Curated, low-context surface** - 37 tools tuned for tool selection, plus one
   read-only escape hatch (`linode_api_get`) for the long tail. No
   tool-per-endpoint sprawl. Load only the domains you need with `--domains`.
 - **Dual transport** - `stdio` for local clients, auth-gated `streamable-http`
@@ -145,7 +145,7 @@ variables).
 
 | Argument | Environment variable | Default | Description |
 |---|---|---|---|
-| `--domains <list\|all>` | `AKAMAI_MCP_DOMAINS` | `all` | Comma-separated domains to load. Choices: `regions`, `pricing`, `compute`, `lke`, `object_storage`, `networking`, `account`, `escape`. |
+| `--domains <list\|all>` | `AKAMAI_MCP_DOMAINS` | `all` | Comma-separated domains to load. Choices: `regions`, `pricing`, `compute`, `lke`, `object_storage`, `networking`, `account`, `dns`, `databases`, `escape`. |
 | `--max-results <int>` | `AKAMAI_MCP_MAX_RESULTS` | `50` | Cap on rows returned by `list_*` tools, so a tool never floods model context. |
 | `--transport <name>` | `AKAMAI_MCP_TRANSPORT` | `stdio` | `stdio`, `streamable-http`, or `http` (alias for `streamable-http`). |
 | `--host <host>` | `AKAMAI_MCP_HOST` | `127.0.0.1` | Bind host for the HTTP transport. |
@@ -231,6 +231,7 @@ All tools are read-only and annotated `readOnlyHint: true`. Load a subset with
 | Tool | Signature | Description |
 |---|---|---|
 | `list_object_storage_buckets` | `(region?: str)` | Buckets with hostname, endpoint type, size, and object count. Keys are never returned. |
+| `get_object_storage_bucket` | `(region: str, bucket: str)` | One bucket's detail (hostname, S3 endpoint, size, object count). Keys are never returned. |
 | `list_object_storage_endpoints` | `()` | Endpoints (region, type, S3 hostname) available to the account. |
 | `get_object_storage_transfer` | `()` | Object Storage network transfer for the current billing period. |
 | `list_object_storage_quotas` | `()` | Object Storage quotas (the only quota API Linode exposes). |
@@ -239,7 +240,8 @@ All tools are read-only and annotated `readOnlyHint: true`. Load a subset with
 
 | Tool | Signature | Description |
 |---|---|---|
-| `list_firewalls` | `()` | Cloud Firewalls with rules, status, and attached entities. |
+| `list_firewalls` | `()` | Cloud Firewalls with status and tags. Use `get_firewall` for rules. |
+| `get_firewall` | `(firewall_id: int)` | One firewall with its inbound/outbound rules and attached resources. |
 | `list_ips` | `()` | IP addresses with type, region, reverse DNS, and assignment. |
 | `list_vlans` | `()` | VLANs with region, CIDR, and attached instances. |
 | `list_vpcs` | `()` | VPCs with region and description. |
@@ -259,11 +261,28 @@ All tools are read-only and annotated `readOnlyHint: true`. Load a subset with
 Leave `account` out of `--domains` if you do not want account data in the
 model's context.
 
+### `dns`
+
+| Tool | Signature | Description |
+|---|---|---|
+| `list_domains` | `()` | DNS domains (zones) with type, status, and SOA email. |
+| `get_domain` | `(domain_id: int)` | One zone with SOA timers, master/AXFR IPs, and tags. |
+| `list_domain_records` | `(domain_id: int)` | A/AAAA/NS/MX/CNAME/TXT/SRV/PTR/CAA records with name, target, and TTL. |
+
+### `databases`
+
+| Tool | Signature | Description |
+|---|---|---|
+| `list_databases` | `()` | Managed Database clusters (all engines) with engine, version, region, status, plan, and host. Credentials never returned. |
+| `get_database` | `(engine: str, database_id: int)` | One database by engine (`mysql`/`postgresql`) and id, with host, port, and maintenance window. Root password never returned. |
+| `list_database_engines` | `()` | Available database engines and versions. |
+| `list_database_types` | `()` | Managed Database plan types with vcpus, memory, disk, engines, and price. |
+
 ### `escape`
 
 | Tool | Signature | Description |
 |---|---|---|
-| `linode_api_get` | `(path: str, params?: dict)` | Read-only GET against any Linode API v4 path a curated tool does not cover, for example `/images` or `/databases/engines`. |
+| `linode_api_get` | `(path: str, params?: dict)` | Read-only GET against any Linode API v4 path a curated tool does not cover, for example `/images` or `/tags`. |
 
 The escape hatch is defended in depth: only GET is allowed, the path is
 validated (relative v4 only, no absolute URL, no traversal), known
@@ -339,10 +358,12 @@ Claude is within about 10 percent):
 
 | Domains loaded | Tools | Tokens (approx) |
 |---|---|---|
-| all (default) | 28 | ~2,450 |
-| `compute,lke,regions` | 9 | ~640 |
-| `pricing` | 3 | ~740 |
-| `compute` | 3 | ~195 |
+| all (default) | 37 | ~3,440 |
+| `compute,lke,regions` | 9 | ~710 |
+| `pricing` | 3 | ~760 |
+| `databases` | 4 | ~310 |
+| `dns` | 3 | ~270 |
+| `compute` | 3 | ~220 |
 
 Load a subset to shrink the footprint, for example
 `--domains compute,pricing` when you only need inventory and cost.

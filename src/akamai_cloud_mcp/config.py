@@ -31,6 +31,8 @@ ALL_DOMAINS = (
     "object_storage",
     "networking",
     "account",
+    "dns",
+    "databases",
     "escape",
 )
 

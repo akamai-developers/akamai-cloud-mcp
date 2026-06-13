@@ -33,6 +33,9 @@ DENYLIST_PATTERNS = (
     "/profile/tokens/*",
     "/account/payment-methods",
     "/account/payment-methods/*",
+    # Managed Database connection credentials (root password) and CA cert.
+    "/databases/*/instances/*/credentials",
+    "/databases/*/instances/*/ssl",
 )
 
 

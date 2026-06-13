@@ -24,6 +24,7 @@ async def test_networking_tools_register() -> None:
     names = await _tool_names(build_server(domains="networking"))
     assert {
         "list_firewalls",
+        "get_firewall",
         "list_ips",
         "list_vlans",
         "list_vpcs",
@@ -35,6 +36,16 @@ async def test_networking_tools_register() -> None:
 async def test_list_firewalls(mock_get: None) -> None:
     data = await _call(build_server(domains="networking"), "list_firewalls")
     assert data["firewalls"][0]["status"] == "enabled"
+
+
+async def test_get_firewall_includes_rules(mock_get: None) -> None:
+    data = await _call(build_server(domains="networking"), "get_firewall", {"firewall_id": 1})
+    assert data["id"] == 1
+    assert data["rules"]["inbound_policy"] == "DROP"
+    rule = data["rules"]["inbound"][0]
+    assert rule["ports"] == "22,80,443"
+    assert rule["addresses"]["ipv4"] == ["0.0.0.0/0"]
+    assert data["entities"][0]["label"] == "web-1"
 
 
 async def test_list_ips(mock_get: None) -> None:

@@ -206,6 +206,139 @@ def serialize_nodebalancer(obj: Any) -> dict[str, Any]:
     return pick(obj, NODEBALANCER_FIELDS)
 
 
+# Firewall detail allowlists. The list view (serialize_firewall) deliberately
+# drops rules and entities; get_firewall surfaces them. No secrets in the schema.
+FIREWALL_RULE_FIELDS = ["action", "protocol", "ports", "addresses", "label", "description"]
+FIREWALL_ENTITY_FIELDS = ["id", "label", "type", "url", "parent_entity"]
+FIREWALL_DETAIL_FIELDS = ["id", "label", "status", "tags", "created", "updated"]
+
+
+def serialize_firewall_rule(obj: Any) -> dict[str, Any]:
+    return pick(obj, FIREWALL_RULE_FIELDS)
+
+
+def serialize_firewall_detail(obj: Any) -> dict[str, Any]:
+    """Allowlist-serialize one firewall with its inbound/outbound rules and the
+    entities it is attached to. The raw GET carries rules/entities inline, so no
+    lazy SDK fetch is triggered."""
+    result = pick(obj, FIREWALL_DETAIL_FIELDS)
+    rules_raw = obj.get("rules") if isinstance(obj, dict) else getattr(obj, "rules", None)
+    rules = rules_raw if isinstance(rules_raw, dict) else {}
+    result["rules"] = {
+        "inbound_policy": rules.get("inbound_policy"),
+        "outbound_policy": rules.get("outbound_policy"),
+        "inbound": [serialize_firewall_rule(r) for r in (rules.get("inbound") or [])],
+        "outbound": [serialize_firewall_rule(r) for r in (rules.get("outbound") or [])],
+        "version": rules.get("version"),
+        "fingerprint": rules.get("fingerprint"),
+    }
+    entities_raw = obj.get("entities") if isinstance(obj, dict) else getattr(obj, "entities", None)
+    result["entities"] = [pick(e, FIREWALL_ENTITY_FIELDS) for e in (entities_raw or [])]
+    return result
+
+
+# DNS (Domains) allowlists. No secret material. soa_email is the public zone SOA
+# contact, not account PII: scrub redacts the exact key "email", not "soa_email".
+DOMAIN_FIELDS = [
+    "id",
+    "domain",
+    "type",
+    "status",
+    "description",
+    "soa_email",
+    "group",
+    "tags",
+    "ttl_sec",
+    "refresh_sec",
+    "retry_sec",
+    "expire_sec",
+    "master_ips",
+    "axfr_ips",
+]
+DOMAIN_RECORD_FIELDS = [
+    "id",
+    "type",
+    "name",
+    "target",
+    "priority",
+    "weight",
+    "port",
+    "service",
+    "protocol",
+    "ttl_sec",
+    "tag",
+    "created",
+    "updated",
+]
+
+
+def serialize_domain(obj: Any) -> dict[str, Any]:
+    return pick(obj, DOMAIN_FIELDS)
+
+
+def serialize_domain_record(obj: Any) -> dict[str, Any]:
+    return pick(obj, DOMAIN_RECORD_FIELDS)
+
+
+# Managed Databases allowlists. Connection credentials (root_username/
+# root_password) and the CA cert live on separate /credentials and /ssl
+# subendpoints that are denylisted in the escape hatch; they are never named here.
+DATABASE_INSTANCE_FIELDS = [
+    "id",
+    "label",
+    "engine",
+    "version",
+    "region",
+    "status",
+    "type",
+    "cluster_size",
+    "hosts",
+    "port",
+    "ssl_connection",
+    "encrypted",
+    "allow_list",
+    "platform",
+    "fork",
+    "oldest_restore_time",
+    "updates",
+    "created",
+    "updated",
+    "instance_uri",
+]
+DATABASE_ENGINE_FIELDS = ["id", "engine", "version"]
+DATABASE_TYPE_FIELDS = [
+    "id",
+    "label",
+    "class",
+    "vcpus",
+    "memory",
+    "disk",
+    "engines",
+    "price",
+    "region_prices",
+    "deprecated",
+]
+
+
+def serialize_database(obj: Any) -> dict[str, Any]:
+    return pick(obj, DATABASE_INSTANCE_FIELDS)
+
+
+def serialize_database_engine(obj: Any) -> dict[str, Any]:
+    return pick(obj, DATABASE_ENGINE_FIELDS)
+
+
+def serialize_database_type(obj: Any) -> dict[str, Any]:
+    """Allowlist-serialize a database plan type. Backfills the API "class" from
+    the SDK's "type_class", like serialize_type."""
+    result = pick(obj, DATABASE_TYPE_FIELDS)
+    if result.get("class") is None:
+        type_class = _get(obj, "type_class")
+        if type_class is not None:
+            result["class"] = _normalize(type_class)
+    return result
+
+
 # Object Storage bucket allowlist. No access/secret key fields, ever.
 OBJECT_STORAGE_BUCKET_FIELDS = [
     "label",

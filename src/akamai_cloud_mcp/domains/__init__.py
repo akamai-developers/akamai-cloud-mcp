@@ -25,6 +25,8 @@ def get_registrars() -> dict[str, Registrar]:
     from akamai_cloud_mcp.domains import (
         account_billing,
         compute,
+        databases,
+        dns,
         escape_hatch,
         lke,
         networking,
@@ -41,5 +43,7 @@ def get_registrars() -> dict[str, Registrar]:
         "object_storage": object_storage.register,
         "networking": networking.register,
         "account": account_billing.register,
+        "dns": dns.register,
+        "databases": databases.register,
         "escape": escape_hatch.register,
     }

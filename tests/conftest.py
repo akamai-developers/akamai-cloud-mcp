@@ -471,6 +471,173 @@ EVENTS = {
     ]
 }
 
+# DNS fixtures. soa_email is the public zone contact and must SURVIVE scrub
+# (the exact key "email" is redacted, but "soa_email" is not).
+DOMAINS = {
+    "data": [
+        {
+            "id": 1,
+            "domain": "example.com",
+            "type": "master",
+            "status": "active",
+            "description": "",
+            "soa_email": "admin@example.com",
+            "group": "",
+            "tags": ["prod"],
+            "ttl_sec": 300,
+            "refresh_sec": 14400,
+            "retry_sec": 3600,
+            "expire_sec": 604800,
+            "master_ips": [],
+            "axfr_ips": [],
+        }
+    ]
+}
+
+DOMAIN_ONE = DOMAINS["data"][0]
+
+DOMAIN_RECORDS = {
+    "data": [
+        {
+            "id": 100,
+            "type": "A",
+            "name": "www",
+            "target": "192.0.2.10",
+            "priority": 0,
+            "weight": 0,
+            "port": 0,
+            "service": None,
+            "protocol": None,
+            "ttl_sec": 300,
+            "tag": None,
+            "created": "2026-01-01T00:00:00",
+            "updated": "2026-01-01T00:00:00",
+        },
+        {
+            "id": 101,
+            "type": "MX",
+            "name": "",
+            "target": "mail.example.com",
+            "priority": 10,
+            "weight": 0,
+            "port": 0,
+            "service": None,
+            "protocol": None,
+            "ttl_sec": 300,
+            "tag": None,
+        },
+    ]
+}
+
+# Managed Database fixtures. Root credentials are PLANTED at the top level (they
+# do not appear there in the real API, but planting proves the allowlist drops
+# them) and must never survive serialization.
+_FAKE_DB_PASSWORD = "s3cr3t-db-pass-xyz"
+
+DATABASES = {
+    "data": [
+        {
+            "id": 55,
+            "label": "prod-mysql",
+            "engine": "mysql",
+            "version": "8.0.30",
+            "region": "us-east",
+            "status": "active",
+            "type": "g6-dedicated-2",
+            "cluster_size": 3,
+            "hosts": {"primary": "lin-55-mysql-primary.servers.linodedb.net", "secondary": None},
+            "port": 3306,
+            "ssl_connection": True,
+            "encrypted": True,
+            "allow_list": ["203.0.113.0/24"],
+            "platform": "rdbms-default",
+            "created": "2026-01-01T00:00:00",
+            "updated": "2026-02-01T00:00:00",
+            "instance_uri": "/v4/databases/mysql/instances/55",
+            # Planted secrets: must not survive the allowlist serializer.
+            "root_username": "linroot",
+            "root_password": _FAKE_DB_PASSWORD,
+        }
+    ]
+}
+
+DATABASE_ONE = DATABASES["data"][0]
+
+DATABASE_ENGINES = {
+    "data": [
+        {"id": "mysql/8", "engine": "mysql", "version": "8"},
+        {"id": "postgresql/16", "engine": "postgresql", "version": "16"},
+    ]
+}
+
+DATABASE_TYPES = {
+    "data": [
+        {
+            "id": "g6-dedicated-2",
+            "label": "Dedicated 4GB",
+            "class": "dedicated",
+            "vcpus": 2,
+            "memory": 4096,
+            "disk": 81920,
+            "engines": {"mysql": [{"quantity": 1, "price": {"monthly": 60.0, "hourly": 0.09}}]},
+            "price": {"hourly": 0.09, "monthly": 60.0},
+            "region_prices": [],
+            "deprecated": False,
+        }
+    ]
+}
+
+# Single firewall detail: rules and attached entities inline.
+FIREWALL_ONE = {
+    "id": 1,
+    "label": "web-fw",
+    "status": "enabled",
+    "tags": [],
+    "created": "2026-01-01T00:00:00",
+    "updated": "2026-01-02T00:00:00",
+    "rules": {
+        "inbound_policy": "DROP",
+        "outbound_policy": "ACCEPT",
+        "inbound": [
+            {
+                "action": "ACCEPT",
+                "protocol": "TCP",
+                "ports": "22,80,443",
+                "addresses": {"ipv4": ["0.0.0.0/0"], "ipv6": ["::/0"]},
+                "label": "allow-web",
+                "description": "web ports",
+            }
+        ],
+        "outbound": [],
+        "version": 1,
+        "fingerprint": "abcd1234",
+    },
+    "entities": [
+        {
+            "id": 111,
+            "label": "web-1",
+            "type": "linode",
+            "url": "/v4/linode/instances/111",
+            "parent_entity": None,
+        }
+    ],
+}
+
+# Single bucket detail. Keys are PLANTED to prove they are never returned.
+OBJ_BUCKET_ONE = {
+    "label": "assets",
+    "region": "us-east",
+    "cluster": "us-east-1",
+    "hostname": "assets.us-east-1.linodeobjects.com",
+    "s3_endpoint": "us-east-1.linodeobjects.com",
+    "endpoint_type": "E1",
+    "created": "2026-01-01T00:00:00",
+    "size": 10485760,
+    "objects": 42,
+    "access_key": _FAKE_ACCESS_KEY,
+    "secret_key": _FAKE_SECRET_KEY,
+}
+
 # Escape-hatch fixtures: a normal path and one that leaks a secret-shaped value.
 IMAGES = {"data": [{"id": "linode/ubuntu24.04", "label": "Ubuntu 24.04"}]}
 LEAKY = {"note": "ok", "config": "-----BEGIN PRIVATE KEY-----\nABCDEF\n-----END PRIVATE KEY-----"}
@@ -491,6 +658,15 @@ _GET_MAP = {
     "/vpcs": VPCS,
     "/vpcs/30": VPC_ONE,
     "/nodebalancers": NODEBALANCERS,
+    "/networking/firewalls/1": FIREWALL_ONE,
+    "/domains": DOMAINS,
+    "/domains/1": DOMAIN_ONE,
+    "/domains/1/records": DOMAIN_RECORDS,
+    "/databases/instances": DATABASES,
+    "/databases/mysql/instances/55": DATABASE_ONE,
+    "/databases/engines": DATABASE_ENGINES,
+    "/databases/types": DATABASE_TYPES,
+    "/object-storage/buckets/us-east/assets": OBJ_BUCKET_ONE,
     "/object-storage/buckets": OBJ_BUCKETS,
     "/object-storage/endpoints": OBJ_ENDPOINTS,
     "/object-storage/transfer": OBJ_TRANSFER,

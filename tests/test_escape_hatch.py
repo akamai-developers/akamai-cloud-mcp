@@ -59,6 +59,12 @@ def test_denylist_matches() -> None:
     assert is_denied("/object-storage/keys/9")
     assert is_denied("/profile/tokens")
     assert is_denied("/account/payment-methods")
+    # Managed Database connection credentials and CA cert are denylisted.
+    assert is_denied("/databases/mysql/instances/55/credentials")
+    assert is_denied("/databases/postgresql/instances/9/credentials")
+    assert is_denied("/databases/mysql/instances/55/ssl")
+    assert not is_denied("/databases/instances")
+    assert not is_denied("/databases/mysql/instances/55")
     assert not is_denied("/regions")
     assert not is_denied("/images")
 

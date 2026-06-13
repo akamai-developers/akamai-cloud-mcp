@@ -17,6 +17,7 @@ from akamai_cloud_mcp.errors import map_api_error
 from akamai_cloud_mcp.scrub import scrub
 from akamai_cloud_mcp.serialize import (
     serialize_firewall,
+    serialize_firewall_detail,
     serialize_ip,
     serialize_nodebalancer,
     serialize_subnet,
@@ -47,10 +48,29 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         name="list_firewalls",
         tags={"networking"},
         annotations=READ_ONLY,
-        description="List Cloud Firewalls with their rules, status, and attached entities.",
+        description=(
+            "List Cloud Firewalls with their status and tags. Use get_firewall for "
+            "one firewall's rules and attached resources."
+        ),
     )
     def list_firewalls() -> dict[str, Any]:
         return _list("/networking/firewalls", "firewalls", serialize_firewall)
+
+    @mcp.tool(
+        name="get_firewall",
+        tags={"networking"},
+        annotations=READ_ONLY,
+        description=(
+            "Get one Cloud Firewall by id, including its inbound and outbound rules "
+            "and the resources it is attached to."
+        ),
+    )
+    def get_firewall(firewall_id: int) -> dict[str, Any]:
+        try:
+            detail = ctx.client.get(f"/networking/firewalls/{firewall_id}")
+        except Exception as exc:
+            raise map_api_error(exc) from exc
+        return scrub(serialize_firewall_detail(detail))
 
     @mcp.tool(
         name="list_ips",

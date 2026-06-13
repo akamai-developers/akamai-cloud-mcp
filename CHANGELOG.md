@@ -51,3 +51,7 @@ All notable changes to this project are documented here. The format follows
   `get_account_transfer`, `list_invoices`, `list_events`, and the composed
   `get_account_limits`, which is honest that Linode exposes no single per-account
   service-limit endpoint. The domain can be toggled off with `--domains`.
+- Escape hatch `linode_api_get`: a single read-only GET tool for any uncovered
+  v4 path, with path validation (relative only, no host override, no traversal),
+  a denylist for known secret endpoints (kubeconfig, object storage keys, profile
+  tokens, payment methods), and recursive scrubbing of the response.

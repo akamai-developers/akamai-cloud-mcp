@@ -185,6 +185,19 @@ per-account service-limit endpoint, so the tool composes the published API rate
 limits, the Object Storage quotas (the only quota API Linode exposes), and the
 network transfer pool, and says so plainly.
 
+## Escape hatch and anti-bloat
+
+The curated surface stays in the low tens of tools (28 with all domains on). The
+long tail is covered by one generic read-only tool, `linode_api_get`, which
+performs a GET against any Linode API v4 path the curated tools do not cover, for
+example `/images` or `/databases/engines`. This is the read-only analog of a
+catch-all API call, and it is why there is no tool-per-endpoint sprawl.
+
+The escape hatch is defended in depth: only GET is allowed, the path is validated
+(relative v4 only, no absolute URL to another host, no traversal), known
+secret-returning endpoints (kubeconfig, object storage keys, profile tokens,
+payment methods) are refused outright, and the response is scrubbed.
+
 ## Read-only and scrubbing guarantees
 
 - Every tool is annotated `readOnlyHint: true`.

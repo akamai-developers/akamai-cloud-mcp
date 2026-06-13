@@ -471,10 +471,16 @@ EVENTS = {
     ]
 }
 
+# Escape-hatch fixtures: a normal path and one that leaks a secret-shaped value.
+IMAGES = {"data": [{"id": "linode/ubuntu24.04", "label": "Ubuntu 24.04"}]}
+LEAKY = {"note": "ok", "config": "-----BEGIN PRIVATE KEY-----\nABCDEF\n-----END PRIVATE KEY-----"}
+
 _GET_MAP = {
     "/linode/instances": INSTANCES,
     "/linode/instances/111": INSTANCE_ONE,
     "/volumes": VOLUMES,
+    "/images": IMAGES,
+    "/leaky": LEAKY,
     "/account": ACCOUNT,
     "/account/transfer": ACCOUNT_TRANSFER,
     "/account/invoices": INVOICES,

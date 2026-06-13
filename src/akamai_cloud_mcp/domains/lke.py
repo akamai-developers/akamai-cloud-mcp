@@ -13,7 +13,7 @@ from __future__ import annotations
 from typing import Any
 
 from akamai_cloud_mcp.context import ServerContext
-from akamai_cloud_mcp.domains._helpers import READ_ONLY, cap, data_list
+from akamai_cloud_mcp.domains._helpers import READ_ONLY, Detail, cap, data_list, project
 from akamai_cloud_mcp.errors import map_api_error
 from akamai_cloud_mcp.scrub import scrub
 from akamai_cloud_mcp.serialize import serialize_lke_cluster, serialize_lke_pool
@@ -32,7 +32,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             "kubeconfig is never returned."
         ),
     )
-    def list_lke_clusters() -> dict[str, Any]:
+    def list_lke_clusters(detail: Detail | None = None) -> dict[str, Any]:
         try:
             rows = ctx.client.get_all("/lke/clusters")
         except Exception as exc:
@@ -41,7 +41,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         result: dict[str, Any] = {
             "count": len(capped),
             "capped": was_capped,
-            "clusters": [serialize_lke_cluster(r) for r in capped],
+            "clusters": [
+                project(serialize_lke_cluster(r), detail or ctx.config.detail) for r in capped
+            ],
         }
         if was_capped:
             result["note"] = f"Results capped at {ctx.config.max_results} clusters."

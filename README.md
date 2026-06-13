@@ -147,6 +147,7 @@ variables).
 |---|---|---|---|
 | `--domains <list\|all>` | `AKAMAI_MCP_DOMAINS` | `all` | Comma-separated domains to load. Choices: `regions`, `pricing`, `compute`, `lke`, `object_storage`, `networking`, `account`, `dns`, `databases`, `escape`. |
 | `--max-results <int>` | `AKAMAI_MCP_MAX_RESULTS` | `50` | Cap on rows returned by `list_*` tools, so a tool never floods model context. |
+| `--detail <concise\|full>` | `AKAMAI_MCP_DETAIL` | `full` | Deploy-wide default verbosity for inventory `list_*` tools. `concise` suits smaller models; the agent can still pass `detail=full` per call. |
 | `--transport <name>` | `AKAMAI_MCP_TRANSPORT` | `stdio` | `stdio`, `streamable-http`, or `http` (alias for `streamable-http`). |
 | `--host <host>` | `AKAMAI_MCP_HOST` | `127.0.0.1` | Bind host for the HTTP transport. |
 | `--port <int>` | `AKAMAI_MCP_PORT` | `8080` | Bind port for the HTTP transport. |
@@ -193,6 +194,13 @@ With the server configured, ask your client natural-language questions:
 
 All tools are read-only and annotated `readOnlyHint: true`. Load a subset with
 `--domains`.
+
+The inventory `list_*` tools take an optional `detail` parameter: `"full"`
+returns the whole row, `"concise"` returns only identity and routing fields (id,
+label, region, status, type) so an agent can scan a large list cheaply and then
+drill into one resource with the matching `get_*` tool. The default is `"full"`;
+set the deploy-wide default with `--detail concise` (good for smaller models),
+and the agent can still override per call.
 
 ### `regions`
 

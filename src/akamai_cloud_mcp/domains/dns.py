@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import Any
 
 from akamai_cloud_mcp.context import ServerContext
-from akamai_cloud_mcp.domains._helpers import READ_ONLY, cap
+from akamai_cloud_mcp.domains._helpers import READ_ONLY, Detail, cap, project
 from akamai_cloud_mcp.errors import map_api_error
 from akamai_cloud_mcp.scrub import scrub
 from akamai_cloud_mcp.serialize import serialize_domain, serialize_domain_record
@@ -29,7 +29,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             "(master or slave), status, and SOA email. Use to inventory DNS zones."
         ),
     )
-    def list_domains() -> dict[str, Any]:
+    def list_domains(detail: Detail | None = None) -> dict[str, Any]:
         try:
             rows = ctx.client.get_all("/domains")
         except Exception as exc:
@@ -38,7 +38,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         result: dict[str, Any] = {
             "count": len(capped),
             "capped": was_capped,
-            "domains": [serialize_domain(r) for r in capped],
+            "domains": [
+                project(serialize_domain(r), detail or ctx.config.detail) for r in capped
+            ],
         }
         if was_capped:
             result["note"] = f"Results capped at {ctx.config.max_results} domains."
@@ -70,7 +72,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             "PTR, CAA), with name, target, TTL, and priority/weight/port where set."
         ),
     )
-    def list_domain_records(domain_id: int) -> dict[str, Any]:
+    def list_domain_records(domain_id: int, detail: Detail | None = None) -> dict[str, Any]:
         try:
             rows = ctx.client.get_all(f"/domains/{domain_id}/records")
         except Exception as exc:
@@ -80,7 +82,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             "domain_id": domain_id,
             "count": len(capped),
             "capped": was_capped,
-            "records": [serialize_domain_record(r) for r in capped],
+            "records": [
+                project(serialize_domain_record(r), detail or ctx.config.detail) for r in capped
+            ],
         }
         if was_capped:
             result["note"] = f"Results capped at {ctx.config.max_results} records."

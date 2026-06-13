@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from akamai_cloud_mcp.context import ServerContext
-from akamai_cloud_mcp.domains._helpers import READ_ONLY, cap
+from akamai_cloud_mcp.domains._helpers import READ_ONLY, Detail, cap, project
 from akamai_cloud_mcp.errors import map_api_error
 from akamai_cloud_mcp.scrub import scrub
 from akamai_cloud_mcp.serialize import serialize_instance, serialize_volume
@@ -28,7 +28,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             "status, IPs, image, and specs. Use to inventory what is running."
         ),
     )
-    def list_instances() -> dict[str, Any]:
+    def list_instances(detail: Detail | None = None) -> dict[str, Any]:
         try:
             rows = ctx.client.get_all("/linode/instances")
         except Exception as exc:
@@ -37,7 +37,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         result: dict[str, Any] = {
             "count": len(capped),
             "capped": was_capped,
-            "instances": [serialize_instance(r) for r in capped],
+            "instances": [
+                project(serialize_instance(r), detail or ctx.config.detail) for r in capped
+            ],
         }
         if was_capped:
             result["note"] = f"Results capped at {ctx.config.max_results} instances."
@@ -68,7 +70,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             "status, and the instance each is attached to."
         ),
     )
-    def list_volumes() -> dict[str, Any]:
+    def list_volumes(detail: Detail | None = None) -> dict[str, Any]:
         try:
             rows = ctx.client.get_all("/volumes")
         except Exception as exc:
@@ -77,7 +79,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         result: dict[str, Any] = {
             "count": len(capped),
             "capped": was_capped,
-            "volumes": [serialize_volume(r) for r in capped],
+            "volumes": [
+                project(serialize_volume(r), detail or ctx.config.detail) for r in capped
+            ],
         }
         if was_capped:
             result["note"] = f"Results capped at {ctx.config.max_results} volumes."

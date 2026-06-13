@@ -42,6 +42,33 @@ async def test_list_instances_shape(mock_get: None) -> None:
     assert "alerts" not in first
 
 
+async def test_list_instances_concise(mock_get: None) -> None:
+    data = await _call(
+        build_server(domains="compute"), "linode_list_instances", {"detail": "concise"}
+    )
+    first = data["instances"][0]
+    # Identity/routing fields are kept...
+    assert first["id"] == 111
+    assert first["label"] == "web-1"
+    assert first["region"] == "us-east"
+    assert first["type"] == "g6-standard-1"
+    assert first["status"] == "running"
+    # ...bulky fields are dropped to keep a long list cheap.
+    assert "ipv4" not in first
+    assert "specs" not in first
+    assert "image" not in first
+
+
+async def test_detail_default_from_config(mock_get: None) -> None:
+    # A deploy-wide concise default (--detail concise) applies when the caller
+    # does not specify, and an explicit detail=full overrides it per call.
+    mcp = build_server(domains="compute", config=Config(detail="concise"))
+    default = await _call(mcp, "linode_list_instances")
+    assert "ipv4" not in default["instances"][0]
+    override = await _call(mcp, "linode_list_instances", {"detail": "full"})
+    assert override["instances"][0]["ipv4"] == ["192.0.2.10"]
+
+
 async def test_get_instance_shape(mock_get: None) -> None:
     data = await _call(build_server(domains="compute"), "linode_get_instance", {"instance_id": 111})
     assert data["id"] == 111

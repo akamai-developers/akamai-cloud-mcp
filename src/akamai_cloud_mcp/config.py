@@ -8,6 +8,14 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
+from typing import Literal
+
+# Default response verbosity for the inventory list_* tools. "full" returns the
+# whole serialized row; "concise" returns only identity/routing fields. The agent
+# can override per call; this is the deploy-wide default (e.g. set "concise" for
+# smaller models). Defined here (not imported from domains) to avoid a cycle.
+Detail = Literal["concise", "full"]
+DEFAULT_DETAIL: Detail = "full"
 
 # Canonical default port for the streamable-HTTP transport.
 DEFAULT_HTTP_PORT = 8080
@@ -78,6 +86,9 @@ class Config:
     domains: tuple[str, ...] = field(default_factory=lambda: ALL_DOMAINS)
     max_results: int = DEFAULT_MAX_RESULTS
     page_size: int = DEFAULT_PAGE_SIZE
+    # Deploy-wide default verbosity for inventory list_* tools; the agent may
+    # override per call with the tool's `detail` argument.
+    detail: Detail = DEFAULT_DETAIL
     stateless_http: bool = True
     # v1 ships no write tools. This seam stays disabled and gates nothing.
     allow_write: bool = False
@@ -98,4 +109,6 @@ class Config:
             page_size=int(
                 _env("AKAMAI_MCP_PAGE_SIZE", str(DEFAULT_PAGE_SIZE)) or DEFAULT_PAGE_SIZE
             ),
+            detail="concise" if (_env("AKAMAI_MCP_DETAIL", "full") or "").lower() == "concise"
+            else "full",
         )

@@ -111,6 +111,13 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         help="Cap rows returned by list_* tools (default 50).",
     )
     parser.add_argument(
+        "--detail",
+        choices=["concise", "full"],
+        default=None,
+        help="Deploy-wide default verbosity for inventory list_* tools (default full). "
+        "'concise' suits smaller models; the agent can still pass detail=full per call.",
+    )
+    parser.add_argument(
         "--allow-write",
         action="store_true",
         help="Disabled seam for future write tools. v1 ships none; this gates nothing.",
@@ -133,6 +140,8 @@ def _resolve_config(args: argparse.Namespace) -> Config:
         config.domains = parse_domains(args.domains)
     if args.max_results is not None:
         config.max_results = args.max_results
+    if args.detail is not None:
+        config.detail = args.detail
     if args.allow_write:
         # v1 ships no write tools, so this flag intentionally gates nothing.
         config.allow_write = True

@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import Any
 
 from akamai_cloud_mcp.context import ServerContext
-from akamai_cloud_mcp.domains._helpers import READ_ONLY, cap
+from akamai_cloud_mcp.domains._helpers import READ_ONLY, Detail, cap, project
 from akamai_cloud_mcp.errors import map_api_error
 from akamai_cloud_mcp.scrub import scrub
 from akamai_cloud_mcp.serialize import (
@@ -29,7 +29,7 @@ from akamai_cloud_mcp.serialize import (
 def register(mcp: Any, ctx: ServerContext) -> None:
     """Register Networking tools on the given FastMCP server."""
 
-    def _list(path: str, key: str, serializer: Any) -> dict[str, Any]:
+    def _list(path: str, key: str, serializer: Any, detail: Detail | None) -> dict[str, Any]:
         try:
             rows = ctx.client.get_all(path)
         except Exception as exc:
@@ -38,7 +38,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         result: dict[str, Any] = {
             "count": len(capped),
             "capped": was_capped,
-            key: [serializer(r) for r in capped],
+            key: [
+                project(serializer(r), detail or ctx.config.detail) for r in capped
+            ],
         }
         if was_capped:
             result["note"] = f"Results capped at {ctx.config.max_results} rows."
@@ -53,8 +55,8 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             "one firewall's rules and attached resources."
         ),
     )
-    def list_firewalls() -> dict[str, Any]:
-        return _list("/networking/firewalls", "firewalls", serialize_firewall)
+    def list_firewalls(detail: Detail | None = None) -> dict[str, Any]:
+        return _list("/networking/firewalls", "firewalls", serialize_firewall, detail)
 
     @mcp.tool(
         name="linode_get_firewall",
@@ -81,8 +83,8 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             "and the instance each is assigned to."
         ),
     )
-    def list_ips() -> dict[str, Any]:
-        return _list("/networking/ips", "ips", serialize_ip)
+    def list_ips(detail: Detail | None = None) -> dict[str, Any]:
+        return _list("/networking/ips", "ips", serialize_ip, detail)
 
     @mcp.tool(
         name="linode_list_vlans",
@@ -90,8 +92,8 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         annotations=READ_ONLY,
         description="List VLANs with their region, CIDR, and attached instances.",
     )
-    def list_vlans() -> dict[str, Any]:
-        return _list("/networking/vlans", "vlans", serialize_vlan)
+    def list_vlans(detail: Detail | None = None) -> dict[str, Any]:
+        return _list("/networking/vlans", "vlans", serialize_vlan, detail)
 
     @mcp.tool(
         name="linode_list_vpcs",
@@ -102,8 +104,8 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             "get_vpc, not here."
         ),
     )
-    def list_vpcs() -> dict[str, Any]:
-        return _list("/vpcs", "vpcs", serialize_vpc)
+    def list_vpcs(detail: Detail | None = None) -> dict[str, Any]:
+        return _list("/vpcs", "vpcs", serialize_vpc, detail)
 
     @mcp.tool(
         name="linode_get_vpc",
@@ -130,5 +132,5 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             "usage."
         ),
     )
-    def list_nodebalancers() -> dict[str, Any]:
-        return _list("/nodebalancers", "nodebalancers", serialize_nodebalancer)
+    def list_nodebalancers(detail: Detail | None = None) -> dict[str, Any]:
+        return _list("/nodebalancers", "nodebalancers", serialize_nodebalancer, detail)

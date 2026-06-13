@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import Any
 
 from akamai_cloud_mcp.context import ServerContext
-from akamai_cloud_mcp.domains._helpers import READ_ONLY, cap
+from akamai_cloud_mcp.domains._helpers import READ_ONLY, Detail, cap, project
 from akamai_cloud_mcp.errors import map_api_error
 from akamai_cloud_mcp.scrub import scrub
 from akamai_cloud_mcp.serialize import serialize_bucket
@@ -31,7 +31,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             "returned."
         ),
     )
-    def list_object_storage_buckets(region: str | None = None) -> dict[str, Any]:
+    def list_object_storage_buckets(
+        region: str | None = None, detail: Detail | None = None
+    ) -> dict[str, Any]:
         path = f"/object-storage/buckets/{region}" if region else "/object-storage/buckets"
         try:
             rows = ctx.client.get_all(path)
@@ -42,7 +44,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             "region": region,
             "count": len(capped),
             "capped": was_capped,
-            "buckets": [serialize_bucket(r) for r in capped],
+            "buckets": [
+                project(serialize_bucket(r), detail or ctx.config.detail) for r in capped
+            ],
         }
         if was_capped:
             result["note"] = f"Results capped at {ctx.config.max_results} buckets."

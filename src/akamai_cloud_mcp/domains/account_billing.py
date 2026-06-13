@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from akamai_cloud_mcp.context import ServerContext
-from akamai_cloud_mcp.domains._helpers import READ_ONLY, cap
+from akamai_cloud_mcp.domains._helpers import READ_ONLY, Detail, cap, project
 from akamai_cloud_mcp.errors import map_api_error
 from akamai_cloud_mcp.scrub import scrub
 from akamai_cloud_mcp.serialize import serialize_account, serialize_event, serialize_invoice
@@ -73,7 +73,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             "Payment-method detail is redacted."
         ),
     )
-    def list_invoices() -> dict[str, Any]:
+    def list_invoices(detail: Detail | None = None) -> dict[str, Any]:
         try:
             rows = ctx.client.get_all("/account/invoices")
         except Exception as exc:
@@ -82,7 +82,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         result: dict[str, Any] = {
             "count": len(capped),
             "capped": was_capped,
-            "invoices": [serialize_invoice(r) for r in capped],
+            "invoices": [
+                project(serialize_invoice(r), detail or ctx.config.detail) for r in capped
+            ],
         }
         if was_capped:
             result["note"] = f"Results capped at {ctx.config.max_results} invoices."
@@ -97,7 +99,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             "affected, status, and timestamps."
         ),
     )
-    def list_events() -> dict[str, Any]:
+    def list_events(detail: Detail | None = None) -> dict[str, Any]:
         try:
             rows = ctx.client.get_all("/account/events")
         except Exception as exc:
@@ -106,7 +108,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         result: dict[str, Any] = {
             "count": len(capped),
             "capped": was_capped,
-            "events": [serialize_event(r) for r in capped],
+            "events": [
+                project(serialize_event(r), detail or ctx.config.detail) for r in capped
+            ],
         }
         if was_capped:
             result["note"] = f"Results capped at {ctx.config.max_results} events."

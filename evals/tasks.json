@@ -1,0 +1,37 @@
+[
+  {
+    "id": "regions_list",
+    "prompt": "Using only the akamai-cloud MCP tools, list three Akamai Cloud region IDs. Do not guess.",
+    "must_use_any": ["linode_list_regions", "linode_get_region_availability"],
+    "expect_regex": "[a-z]{2}-[a-z]+",
+    "needs_token": false
+  },
+  {
+    "id": "price_lookup",
+    "prompt": "Using only the akamai-cloud MCP tools, what is the monthly USD price of a g6-standard-1 instance? Do not guess.",
+    "must_use_any": ["linode_get_pricing", "linode_list_instance_types"],
+    "expect_regex": "\\$?\\d",
+    "needs_token": false
+  },
+  {
+    "id": "gpu_in_stock",
+    "prompt": "Using only the akamai-cloud MCP tools, name one GPU plan id that is currently in stock somewhere, and the region it is in.",
+    "must_use_any": ["linode_find_gpu_availability"],
+    "expect_regex": "gpu|rtx|g[0-9]",
+    "needs_token": false
+  },
+  {
+    "id": "estimate_stack",
+    "prompt": "Using only the akamai-cloud MCP tools, estimate the monthly cost of 2x g6-standard-2 with backups plus a 100GB block storage volume in us-east.",
+    "must_use_any": ["linode_estimate_cost"],
+    "expect_regex": "\\d",
+    "needs_token": false
+  },
+  {
+    "id": "count_instances",
+    "prompt": "Using only the akamai-cloud MCP tools, how many Linode instances are in my account?",
+    "must_use_any": ["linode_list_instances"],
+    "expect_regex": "\\d",
+    "needs_token": true
+  }
+]

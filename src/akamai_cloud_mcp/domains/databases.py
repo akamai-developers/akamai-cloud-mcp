@@ -15,7 +15,7 @@ from __future__ import annotations
 from typing import Any
 
 from akamai_cloud_mcp.context import ServerContext
-from akamai_cloud_mcp.domains._helpers import READ_ONLY, cap
+from akamai_cloud_mcp.domains._helpers import READ_ONLY, Detail, cap, project
 from akamai_cloud_mcp.errors import ToolError, map_api_error
 from akamai_cloud_mcp.scrub import scrub
 from akamai_cloud_mcp.serialize import (
@@ -42,7 +42,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             "root password is never returned."
         ),
     )
-    def list_databases() -> dict[str, Any]:
+    def list_databases(detail: Detail | None = None) -> dict[str, Any]:
         try:
             rows = ctx.client.get_all("/databases/instances")
         except Exception as exc:
@@ -51,7 +51,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         result: dict[str, Any] = {
             "count": len(capped),
             "capped": was_capped,
-            "databases": [serialize_database(r) for r in capped],
+            "databases": [
+                project(serialize_database(r), detail or ctx.config.detail) for r in capped
+            ],
         }
         if was_capped:
             result["note"] = f"Results capped at {ctx.config.max_results} databases."

@@ -37,9 +37,7 @@ single cohesive API, so the tools live in one server with domain modules inside.
 ## Prerequisites
 
 1. **Account.** Create an Akamai Cloud account with an API token (includes a $300
-   credit). You'll use it to spin up the GPU/Kubernetes infra that serves the
-   vLLM endpoint (Option A). On a laptop with Ollama (Option B) it's optional,
-   but the credit is worth grabbing either way.
+   credit).
 2. Install [`uv`](https://docs.astral.sh/uv/getting-started/installation/) (it
    provides `uvx`, used to run the server). `pipx` works too.
 3. Python 3.11 or newer.

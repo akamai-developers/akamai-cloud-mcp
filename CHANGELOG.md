@@ -66,3 +66,7 @@ generic read-only escape hatch.
   is annotated `readOnlyHint`.
 - Transport and HTTP-auth tests; GitHub Actions CI (ruff, mypy, pytest on Python
   3.11 and 3.12) and a scheduled live pricing-staleness workflow with a baseline.
+- Packaging: wheel and sdist build, local-artifact install path, and `server.json`
+  for the official MCP registry.
+- Copy-paste client configs (Claude Desktop, Claude Code, Cursor), an HTTP deploy
+  section with the shared-token warning, and a Dockerfile for the HTTP transport.

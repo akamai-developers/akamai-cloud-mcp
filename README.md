@@ -18,7 +18,7 @@ The active tool set stays in the low tens.
 
 ## Status
 
-Early development. v1 is read-only and ships no write or mutating operations.
+v0.1.0. v1 is read-only and ships no write or mutating operations.
 
 ## Design
 
@@ -47,9 +47,6 @@ All tools are read-only. Load a subset with `--domains compute,pricing`.
 | `networking` | `list_firewalls`, `list_ips`, `list_vlans`, `list_vpcs`, `get_vpc`, `list_nodebalancers` |
 | `account` | `get_account`, `get_account_transfer`, `list_invoices`, `list_events`, `get_account_limits` |
 | `escape` | `linode_api_get` |
-
-The tool implementations land across the build phases. The table is the target
-surface.
 
 ## Install
 
@@ -89,6 +86,73 @@ Maintainers publish with the `mcp-publisher` CLI (not run here):
 mcp-publisher login github
 mcp-publisher publish
 ```
+
+## Client configuration
+
+Copy-paste configs. Replace `<your-linode-token>` with a read-only-scoped token.
+
+### Claude Desktop
+
+Add to `claude_desktop_config.json` (Settings -> Developer -> Edit Config):
+
+```json
+{
+  "mcpServers": {
+    "akamai-cloud": {
+      "command": "uvx",
+      "args": ["akamai-cloud-mcp"],
+      "env": {
+        "LINODE_TOKEN": "<your-linode-token>"
+      }
+    }
+  }
+}
+```
+
+### Claude Code
+
+```bash
+claude mcp add akamai-cloud --env LINODE_TOKEN=<your-linode-token> -- uvx akamai-cloud-mcp
+```
+
+### Cursor
+
+Add to `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "akamai-cloud": {
+      "command": "uvx",
+      "args": ["akamai-cloud-mcp"],
+      "env": {
+        "LINODE_TOKEN": "<your-linode-token>"
+      }
+    }
+  }
+}
+```
+
+To load a subset of domains, add `"--domains", "compute,pricing"` to `args`.
+
+## HTTP deploy
+
+For a hosted deployment, run the streamable-HTTP transport:
+
+```bash
+export LINODE_TOKEN="<your-linode-token>"
+export AKAMAI_MCP_HTTP_AUTH_TOKEN="<a-bearer-token-clients-must-present>"
+akamai-cloud-mcp --transport streamable-http --host 0.0.0.0 --port 8080 --path /mcp
+```
+
+The server is served at `/mcp/`.
+
+**The HTTP transport uses ONE shared server-side `LINODE_TOKEN`. Every
+authenticated caller queries the SAME Linode account. This is not a
+bring-your-own-token design.** Do not expose one account's data to a shared
+audience by accident. The HTTP transport refuses to start without
+`AKAMAI_MCP_HTTP_AUTH_TOKEN` (set `AKAMAI_MCP_ALLOW_INSECURE_HTTP=1` to override,
+which is strongly discouraged). Always run it behind TLS.
 
 ## Token setup
 

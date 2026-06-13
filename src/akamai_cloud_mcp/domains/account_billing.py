@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from akamai_cloud_mcp.context import ServerContext
-from akamai_cloud_mcp.domains._helpers import READ_ONLY, cap, data_list
+from akamai_cloud_mcp.domains._helpers import READ_ONLY, cap
 from akamai_cloud_mcp.errors import map_api_error
 from akamai_cloud_mcp.scrub import scrub
 from akamai_cloud_mcp.serialize import serialize_account, serialize_event, serialize_invoice
@@ -75,10 +75,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     )
     def list_invoices() -> dict[str, Any]:
         try:
-            resp = ctx.client.get("/account/invoices")
+            rows = ctx.client.get_all("/account/invoices")
         except Exception as exc:
             raise map_api_error(exc) from exc
-        rows = data_list(resp)
         capped, was_capped = cap(rows, ctx.config.max_results)
         result: dict[str, Any] = {
             "count": len(capped),
@@ -100,10 +99,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     )
     def list_events() -> dict[str, Any]:
         try:
-            resp = ctx.client.get("/account/events")
+            rows = ctx.client.get_all("/account/events")
         except Exception as exc:
             raise map_api_error(exc) from exc
-        rows = data_list(resp)
         capped, was_capped = cap(rows, ctx.config.max_results)
         result: dict[str, Any] = {
             "count": len(capped),
@@ -138,7 +136,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
 
         # Object Storage quotas are the only quota API Linode exposes.
         try:
-            quotas = data_list(ctx.client.get("/object-storage/quotas"))
+            quotas = ctx.client.get_all("/object-storage/quotas")
             result["object_storage_quotas"] = quotas[: ctx.config.max_results]
         except Exception:
             result["object_storage_quotas"] = None

@@ -34,10 +34,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     )
     def list_lke_clusters() -> dict[str, Any]:
         try:
-            resp = ctx.client.get("/lke/clusters")
+            rows = ctx.client.get_all("/lke/clusters")
         except Exception as exc:
             raise map_api_error(exc) from exc
-        rows = data_list(resp)
         capped, was_capped = cap(rows, ctx.config.max_results)
         result: dict[str, Any] = {
             "count": len(capped),
@@ -70,7 +69,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         # Subresources are best-effort; a failure on one degrades gracefully and
         # never blocks the rest. The kubeconfig endpoint is intentionally absent.
         try:
-            pools = data_list(ctx.client.get(f"/lke/clusters/{cluster_id}/pools"))
+            pools = ctx.client.get_all(f"/lke/clusters/{cluster_id}/pools")
             result["pools"] = [serialize_lke_pool(p) for p in pools]
         except Exception:
             warnings.append("Could not load node pools.")
@@ -102,10 +101,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     )
     def list_kubernetes_versions() -> dict[str, Any]:
         try:
-            resp = ctx.client.get("/lke/versions")
+            rows = ctx.client.get_all("/lke/versions")
         except Exception as exc:
             raise map_api_error(exc) from exc
-        rows = data_list(resp)
         capped, was_capped = cap(rows, ctx.config.max_results)
         result: dict[str, Any] = {
             "count": len(capped),

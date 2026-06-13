@@ -1,116 +1,73 @@
-# Akamai Cloud MCP
-
-mcp-name: io.github.akamai-developers/akamai-cloud-mcp
+# Akamai Cloud MCP Server
 
 [![CI](https://github.com/akamai-developers/akamai-cloud-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/akamai-developers/akamai-cloud-mcp/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 
 A read-only [Model Context Protocol](https://modelcontextprotocol.io) server for
-Akamai Cloud (Linode). Point an MCP client (Claude Desktop, Claude Code, Cursor,
-or any MCP client) at it, give it a read-only-scoped Linode token, and ask
-natural-language questions about your account: what you run, what a stack would
-cost, where GPUs are in stock, and which account limits apply.
+Akamai Cloud (Linode). Point any MCP client or agent at it, give it a
+read-only-scoped Linode token, and ask plain-language questions about your
+account: what you run, what a stack would cost, where GPUs are in stock, and
+which account limits apply.
 
-This is one general server, not a fleet of per-service servers. Akamai Cloud is a
-single cohesive API, so the right shape is one curated server with domain modules
-inside, similar to AWS's general API MCP server rather than its per-service fleet.
-The active tool set stays in the low tens.
+It is one curated server, not a fleet of per-service servers: Akamai Cloud is a
+single cohesive API, so the tools live in one server with domain modules inside.
 
-## Status
+## Features
 
-v0.1.0. v1 is read-only and ships no write or mutating operations.
+- **Inventory** - list compute instances, block-storage volumes, LKE clusters,
+  Object Storage buckets, firewalls, IPs, VLANs, VPCs, and NodeBalancers, with
+  the details that matter (region, type, status, attachments) and nothing that
+  leaks.
+- **Pricing and cost estimates** - live per-type pricing with the correct
+  region-override fallback, GPU and accelerated-plan availability by region, and
+  full-stack monthly estimates that itemize every line and label its source.
+- **Account and limits** - account details, network transfer, invoices, the
+  event log, and a composed account-limits summary. Payment and PII fields are
+  redacted on every return.
+- **Read-only by construction** - a GET-only client, allowlist serialization,
+  and a recursive secret scrub. Enforced by a static scan and a runtime
+  HTTP-verb guard, not just convention.
+- **Curated, low-context surface** - 28 tools tuned for tool selection, plus one
+  read-only escape hatch (`linode_api_get`) for the long tail. No
+  tool-per-endpoint sprawl. Load only the domains you need with `--domains`.
+- **Dual transport** - `stdio` for local clients, auth-gated `streamable-http`
+  for hosted deployments.
 
-## Design
+## Prerequisites
 
-- **Read-only.** No write or mutating operation anywhere in v1. Enforced by a
-  GET-only client, a static code scan, and an HTTP-verb guard in the tests.
-- **Curated, not auto-generated.** A focused tool set tuned for LLM tool
-  selection, plus one generic read-only escape hatch (`linode_api_get`) for the
-  long tail. No tool-per-endpoint sprawl.
-- **Safety first.** A scoped token read from the environment, never logged.
-  Secrets (LKE kubeconfigs, Object Storage keys, tokens, payment and PII fields)
-  are removed from results by allowlist serialization and a recursive scrub.
-- **Domain toggles.** Load only the domain groups you want with `--domains`.
-- **Dual transport.** stdio for local clients, streamable-HTTP for hosted use.
+1. Install [`uv`](https://docs.astral.sh/uv/getting-started/installation/) (it
+   provides `uvx`, used to run the server). `pipx` works too.
+2. Python 3.11 or newer.
+3. A Linode personal access token with **read-only** scopes (see
+   [Token setup](#token-setup)). Pricing and catalog tools work without a token;
+   account-scoped tools require one.
 
-## Domains and tools
+## Installation
 
-All tools are read-only. Load a subset with `--domains compute,pricing`.
-
-| Domain | Tools |
-|---|---|
-| `regions` | `list_regions`, `get_region_availability`, `list_instance_types` |
-| `pricing` | `get_pricing`, `find_gpu_availability`, `estimate_cost` |
-| `compute` | `list_instances`, `get_instance`, `list_volumes` |
-| `lke` | `list_lke_clusters`, `get_lke_cluster`, `list_kubernetes_versions` |
-| `object_storage` | `list_object_storage_buckets`, `list_object_storage_endpoints`, `get_object_storage_transfer`, `list_object_storage_quotas` |
-| `networking` | `list_firewalls`, `list_ips`, `list_vlans`, `list_vpcs`, `get_vpc`, `list_nodebalancers` |
-| `account` | `get_account`, `get_account_transfer`, `list_invoices`, `list_events`, `get_account_limits` |
-| `escape` | `linode_api_get` |
-
-## Context cost
-
-Tool definitions count against your model's context window, so this server keeps
-that small on purpose: 28 curated tools instead of one-per-endpoint, plus
-`--domains` to load only what you need. Approximate footprint (measured with a
-GPT tokenizer; Claude is within about 10 percent):
-
-| Domains loaded | Tools | Tokens (approx) |
-|---|---|---|
-| all (default) | 28 | ~2,450 |
-| `compute,lke,regions` | 9 | ~640 |
-| `pricing` | 3 | ~740 |
-| `compute` | 3 | ~195 |
-
-Load a subset to shrink the footprint, for example `--domains compute,pricing`
-when you only need inventory and cost.
-
-## Install
-
-The documented install paths are `uvx` and `pipx` (available once published to
-PyPI):
+Run straight from PyPI with no install step:
 
 ```bash
 uvx akamai-cloud-mcp --help
-# or
+```
+
+Or install it onto your PATH:
+
+```bash
 pipx install akamai-cloud-mcp
-```
-
-For local development:
-
-```bash
-uv sync
-uv run akamai-cloud-mcp --help
-```
-
-To build and run the wheel locally:
-
-```bash
-uv build
-uvx --from ./dist/akamai_cloud_mcp-0.1.0-py3-none-any.whl akamai-cloud-mcp --help
-```
-
-## MCP registry
-
-This server is published to the official MCP registry under
-`io.github.akamai-developers/akamai-cloud-mcp`. The `server.json` at the repo root
-describes the PyPI package and the streamable-HTTP remote. The README carries the
-matching `mcp-name:` line for PyPI ownership verification.
-
-Maintainers publish with the `mcp-publisher` CLI (not run here):
-
-```bash
-mcp-publisher login github
-mcp-publisher publish
 ```
 
 ## Client configuration
 
-Copy-paste configs. Replace `<your-linode-token>` with a read-only-scoped token.
+Add the server to your MCP client and pass your token in the `env` block.
+Anything after the package name in `args` is passed to the server, so this is
+where you scope domains, cap results, or change transport. See
+[Arguments](#arguments) for the full list.
 
 ### Claude Desktop
 
-Add to `claude_desktop_config.json` (Settings -> Developer -> Edit Config):
+Open **Settings → Developer → Edit Config** and add the server to
+`claude_desktop_config.json`:
 
 ```json
 {
@@ -119,7 +76,7 @@ Add to `claude_desktop_config.json` (Settings -> Developer -> Edit Config):
       "command": "uvx",
       "args": ["akamai-cloud-mcp"],
       "env": {
-        "LINODE_TOKEN": "<your-linode-token>"
+        "LINODE_TOKEN": "<your-read-only-linode-token>"
       }
     }
   }
@@ -128,83 +85,193 @@ Add to `claude_desktop_config.json` (Settings -> Developer -> Edit Config):
 
 ### Claude Code
 
+Add it with one command:
+
 ```bash
-claude mcp add akamai-cloud --env LINODE_TOKEN=<your-linode-token> -- uvx akamai-cloud-mcp
+claude mcp add akamai-cloud --env LINODE_TOKEN=<your-read-only-linode-token> -- uvx akamai-cloud-mcp
 ```
 
-### Cursor
-
-Add to `~/.cursor/mcp.json`:
+Or commit a project-scoped `.mcp.json` so your agents share the same config.
+This example loads only the `compute`, `pricing`, and `regions` domains and
+raises the result cap:
 
 ```json
 {
   "mcpServers": {
     "akamai-cloud": {
       "command": "uvx",
-      "args": ["akamai-cloud-mcp"],
+      "args": [
+        "akamai-cloud-mcp",
+        "--domains", "compute,pricing,regions",
+        "--max-results", "100"
+      ],
       "env": {
-        "LINODE_TOKEN": "<your-linode-token>"
+        "LINODE_TOKEN": "<your-read-only-linode-token>"
       }
     }
   }
 }
 ```
 
-To load a subset of domains, add `"--domains", "compute,pricing"` to `args`.
+### Cursor
 
-## HTTP deploy
+Add the server to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (per
+project). This example narrows the surface to inventory and cost tools:
 
-For a hosted deployment, run the streamable-HTTP transport:
-
-```bash
-export LINODE_TOKEN="<your-linode-token>"
-export AKAMAI_MCP_HTTP_AUTH_TOKEN="<a-bearer-token-clients-must-present>"
-akamai-cloud-mcp --transport streamable-http --host 0.0.0.0 --port 8080 --path /mcp
+```json
+{
+  "mcpServers": {
+    "akamai-cloud": {
+      "command": "uvx",
+      "args": [
+        "akamai-cloud-mcp",
+        "--domains", "compute,pricing"
+      ],
+      "env": {
+        "LINODE_TOKEN": "<your-read-only-linode-token>"
+      }
+    }
+  }
+}
 ```
 
-The server is served at `/mcp/`.
+Any MCP client that launches a `command` works the same way: `command` is `uvx`,
+`args` starts with `akamai-cloud-mcp`, and the token goes in `env`.
 
-**The HTTP transport uses ONE shared server-side `LINODE_TOKEN`. Every
-authenticated caller queries the SAME Linode account. This is not a
-bring-your-own-token design.** Do not expose one account's data to a shared
-audience by accident. The HTTP transport refuses to start without
-`AKAMAI_MCP_HTTP_AUTH_TOKEN` (set `AKAMAI_MCP_ALLOW_INSECURE_HTTP=1` to override,
-which is strongly discouraged). Always run it behind TLS.
+## Arguments
+
+Pass these after `akamai-cloud-mcp` in `args` (CLI flags override environment
+variables).
+
+| Argument | Environment variable | Default | Description |
+|---|---|---|---|
+| `--domains <list\|all>` | `AKAMAI_MCP_DOMAINS` | `all` | Comma-separated domains to load. Choices: `regions`, `pricing`, `compute`, `lke`, `object_storage`, `networking`, `account`, `escape`. |
+| `--max-results <int>` | `AKAMAI_MCP_MAX_RESULTS` | `50` | Cap on rows returned by `list_*` tools, so a tool never floods model context. |
+| `--transport <name>` | `AKAMAI_MCP_TRANSPORT` | `stdio` | `stdio`, `streamable-http`, or `http` (alias for `streamable-http`). |
+| `--host <host>` | `AKAMAI_MCP_HOST` | `127.0.0.1` | Bind host for the HTTP transport. |
+| `--port <int>` | `AKAMAI_MCP_PORT` | `8080` | Bind port for the HTTP transport. |
+| `--path <path>` | `AKAMAI_MCP_PATH` | `/mcp` | URL path for the HTTP transport. |
+| `--version` | - | - | Print the version and exit. |
+
+Secrets are read from the environment, never from CLI flags:
+
+| Environment variable | Required | Description |
+|---|---|---|
+| `LINODE_TOKEN` | For account-scoped tools | Read-only-scoped Linode personal access token. `LINODE_API_TOKEN` is accepted as an alias. |
+| `AKAMAI_MCP_HTTP_AUTH_TOKEN` | For HTTP transport | Bearer token that HTTP clients must present. The HTTP transport refuses to start without it. |
 
 ## Token setup
 
 Create a Linode personal access token with read-only scopes and export it:
 
 ```bash
-export LINODE_TOKEN="<your-linode-token>"
+export LINODE_TOKEN="<your-read-only-linode-token>"
 ```
 
-`LINODE_API_TOKEN` is accepted as an alias. Recommended scopes are read-only:
+The default tool set spans several services, so grant all of these read-only
+scopes (this is the set the server recommends):
+
 `linodes:read_only`, `lke:read_only`, `object_storage:read_only`,
-`account:read_only`, `events:read_only`, and the rest as needed. The server never
-logs or echoes the token.
+`nodebalancers:read_only`, `firewall:read_only`, `vpc:read_only`,
+`ips:read_only`, `account:read_only`, `events:read_only`.
 
-## Pricing
+If you load only a subset of domains with `--domains`, you only need the scopes
+for those services. The server never logs or echoes the token, and
+`LINODE_API_TOKEN` is accepted as an alias.
 
-Pricing uses the public type and price endpoints, so catalog questions work even
-without a token. Two details the tools get right so you do not have to:
+## Usage
 
-- **Region price fallback.** A type's top-level `price` is the default-region
-  price. `region_prices[]` lists overrides for the few higher-cost regions
-  (currently Jakarta and Sao Paulo). To price a region, the tool matches the
-  region id in `region_prices[]` and falls back to the default price when there
-  is no override.
-- **Null monthly means metered.** Metered SKUs (network transfer, Object Storage
-  overage) report `monthly` as null, not 0. Null means priced per unit with no
-  monthly cap. The tools never coerce null to 0.
+With the server configured, ask your client natural-language questions:
 
-Some costs are invisible to the API (Object Storage Class A/B request pricing,
-free-allotment thresholds, policy facts like no egress fees to Akamai CDN). Those
-live in a curated in-repo supplement, each entry carrying a source and a review
-date. `get_pricing` for the `object_storage` family returns that supplement
-alongside the live storage price.
+- "List my running Linodes and which region each is in."
+- "What would 3x g6-standard-2 with backups, a 200 GB volume, and an HA LKE control plane cost per month in us-east?"
+- "Where can I get an RTX GPU plan right now?"
+- "Show my Object Storage buckets and this period's transfer usage."
+- "What are my account limits?"
 
-## Worked example: estimate_cost
+## Tools
+
+All tools are read-only and annotated `readOnlyHint: true`. Load a subset with
+`--domains`.
+
+### `regions`
+
+| Tool | Signature | Description |
+|---|---|---|
+| `list_regions` | `()` | Regions with capabilities, country, site type, and status. |
+| `get_region_availability` | `(region?: str)` | Which plans are in stock, account-wide or scoped to one region. |
+| `list_instance_types` | `()` | Plan types with vcpus, memory, disk, transfer, GPUs, class, and prices. |
+
+### `pricing`
+
+| Tool | Signature | Description |
+|---|---|---|
+| `get_pricing` | `(family: str, region?: str)` | Per-type pricing for a family (`compute`, `block_storage`, `nodebalancers`, `network_transfer`, `lke`, `object_storage`) with the correct region override applied. |
+| `find_gpu_availability` | `(region?: str)` | GPU and accelerated plans with price and the regions where each is in stock. |
+| `estimate_cost` | `(request: EstimateRequest)` | Itemized hourly and monthly cost of a described stack, each line labeled by source. |
+
+### `compute`
+
+| Tool | Signature | Description |
+|---|---|---|
+| `list_instances` | `()` | Compute instances with region, type, status, IPs, image, and specs. |
+| `get_instance` | `(instance_id: int)` | One instance by id. |
+| `list_volumes` | `()` | Block-storage volumes with size, region, status, and attachment. |
+
+### `lke`
+
+| Tool | Signature | Description |
+|---|---|---|
+| `list_lke_clusters` | `()` | LKE clusters with region, Kubernetes version, tier, and control-plane settings. |
+| `get_lke_cluster` | `(cluster_id: int)` | One cluster with node pools, API endpoints, and control-plane ACL. The kubeconfig is never returned. |
+| `list_kubernetes_versions` | `()` | Kubernetes versions available for new and upgraded clusters. |
+
+### `object_storage`
+
+| Tool | Signature | Description |
+|---|---|---|
+| `list_object_storage_buckets` | `(region?: str)` | Buckets with hostname, endpoint type, size, and object count. Keys are never returned. |
+| `list_object_storage_endpoints` | `()` | Endpoints (region, type, S3 hostname) available to the account. |
+| `get_object_storage_transfer` | `()` | Object Storage network transfer for the current billing period. |
+| `list_object_storage_quotas` | `()` | Object Storage quotas (the only quota API Linode exposes). |
+
+### `networking`
+
+| Tool | Signature | Description |
+|---|---|---|
+| `list_firewalls` | `()` | Cloud Firewalls with rules, status, and attached entities. |
+| `list_ips` | `()` | IP addresses with type, region, reverse DNS, and assignment. |
+| `list_vlans` | `()` | VLANs with region, CIDR, and attached instances. |
+| `list_vpcs` | `()` | VPCs with region and description. |
+| `get_vpc` | `(vpc_id: int)` | One VPC with its subnets and the instances in each. |
+| `list_nodebalancers` | `()` | NodeBalancers with region, hostname, IPs, and transfer usage. |
+
+### `account` (on by default)
+
+| Tool | Signature | Description |
+|---|---|---|
+| `get_account` | `()` | Company, country, balance, capabilities. Payment and personal fields redacted. |
+| `get_account_transfer` | `()` | Network transfer for the current billing period, including per-region. |
+| `list_invoices` | `()` | Invoices with date, subtotal, tax, and total. Payment detail redacted. |
+| `list_events` | `()` | Recent account events (the audit log). |
+| `get_account_limits` | `()` | Composed account-limits summary (rate limits, Object Storage quotas, transfer pool). |
+
+Leave `account` out of `--domains` if you do not want account data in the
+model's context.
+
+### `escape`
+
+| Tool | Signature | Description |
+|---|---|---|
+| `linode_api_get` | `(path: str, params?: dict)` | Read-only GET against any Linode API v4 path a curated tool does not cover, for example `/images` or `/databases/engines`. |
+
+The escape hatch is defended in depth: only GET is allowed, the path is
+validated (relative v4 only, no absolute URL, no traversal), known
+secret-returning endpoints (kubeconfig, Object Storage keys, profile tokens,
+payment methods) are refused outright, and the response is scrubbed. It is why
+there is no tool-per-endpoint sprawl.
+
+## Worked example: `estimate_cost`
 
 `estimate_cost` composes a stack from live prices plus the curated supplement.
 Given this request:
@@ -244,102 +311,116 @@ add nothing. LKE worker nodes are priced as their underlying instance types, so
 add them under `instances`. These figures match the golden-output test, so the
 example and the tool cannot drift apart.
 
-## find_gpu_availability
+## Pricing notes
 
-`find_gpu_availability` returns both the `gpu` class (NVIDIA RTX plans, `gpus >
-0`) and the `accelerated` class (for example NETINT VPU plans,
-`accelerated_devices > 0` and `gpus == 0`), each with price and the regions where
-it is in stock. Pass a region to scope it. Marketing-only SKUs that are not
-self-serve priced (for example RTX PRO 6000 Blackwell, "by request") are listed
-separately so they are visible without being treated as orderable.
+Pricing uses the public type and price endpoints, so catalog questions work even
+without a token. Two details the tools get right so you do not have to:
 
-## Inventory
+- **Region price fallback.** A type's top-level `price` is the default-region
+  price; `region_prices[]` lists overrides for the few higher-cost regions
+  (currently Jakarta and Sao Paulo). To price a region, the tool matches the
+  region id in `region_prices[]` and falls back to the default when there is no
+  override.
+- **Null monthly means metered.** Metered SKUs (network transfer, Object Storage
+  overage) report `monthly` as `null`, not `0`. Null means priced per unit with
+  no monthly cap. The tools never coerce null to 0.
 
-The `compute` domain answers what you run: `list_instances` and `get_instance`
-return region, type, status, IPs, image, and specs; `list_volumes` returns block
-storage with the instance each volume is attached to. Results are allowlist
-serialized (only safe fields leave the SDK) and capped at `--max-results`.
+Some costs are invisible to the API (Object Storage Class A/B request pricing,
+free-allotment thresholds, policy facts like no egress fees to Akamai CDN).
+Those live in a curated in-repo supplement, each entry carrying a source and a
+review date. `get_pricing` for the `object_storage` family returns that
+supplement alongside the live storage price.
 
-## LKE
+## Context cost
 
-The `lke` domain lists clusters and Kubernetes versions, and `get_lke_cluster`
-composes a cluster with its node pools, API endpoints, control plane ACL, and
-dashboard URL. The cluster kubeconfig is never read or returned. The tool does
-not fetch the kubeconfig endpoint, the allowlist serializer does not include the
-field, and the recursive scrub is the backstop. Asking for the kubeconfig will
-not surface it.
+Tool definitions count against your model's context window, so this server keeps
+that small on purpose. Approximate footprint (measured with a GPT tokenizer;
+Claude is within about 10 percent):
 
-## Object Storage
+| Domains loaded | Tools | Tokens (approx) |
+|---|---|---|
+| all (default) | 28 | ~2,450 |
+| `compute,lke,regions` | 9 | ~640 |
+| `pricing` | 3 | ~740 |
+| `compute` | 3 | ~195 |
 
-The `object_storage` domain lists buckets (optionally by region), lists endpoints
-(using the current endpoints API, not the deprecated clusters one), reports
-network transfer for the billing period, and lists the Object Storage quotas,
-which are the only quota API Linode exposes. Access and secret keys are never
-returned and there is no key-listing tool.
+Load a subset to shrink the footprint, for example
+`--domains compute,pricing` when you only need inventory and cost.
 
-## Networking
+## HTTP deployment
 
-The `networking` domain lists firewalls, IPs, VLANs, VPCs, and NodeBalancers.
-Subnets are not a top-level list; `get_vpc` returns a VPC with its subnets and
-the instances in each. IPs are returned because the account owns them, but they
-are never logged.
+For a hosted deployment, run the `streamable-http` transport:
 
-## Account and billing
+```bash
+export LINODE_TOKEN="<your-read-only-linode-token>"
+export AKAMAI_MCP_HTTP_AUTH_TOKEN="<a-bearer-token-clients-must-present>"
+akamai-cloud-mcp --transport streamable-http --host 0.0.0.0 --port 8080 --path /mcp
+```
 
-The `account` domain returns your own account data: `get_account` (company,
-country, balance, capabilities, with payment-method and personal fields
-redacted), `get_account_transfer`, `list_invoices` (payment detail redacted),
-`list_events`, and `get_account_limits`. This domain is on by default. Turn it
-off by leaving `account` out of `--domains` if you do not want account data in
-the model's context.
+The server is served at `/mcp/`.
 
-`get_account_limits` is honest about a real gap: Linode does not expose a single
-per-account service-limit endpoint, so the tool composes the published API rate
-limits, the Object Storage quotas (the only quota API Linode exposes), and the
-network transfer pool, and says so plainly.
-
-## Escape hatch and anti-bloat
-
-The curated surface stays in the low tens of tools (28 with all domains on). The
-long tail is covered by one generic read-only tool, `linode_api_get`, which
-performs a GET against any Linode API v4 path the curated tools do not cover, for
-example `/images` or `/databases/engines`. This is the read-only analog of a
-catch-all API call, and it is why there is no tool-per-endpoint sprawl.
-
-The escape hatch is defended in depth: only GET is allowed, the path is validated
-(relative v4 only, no absolute URL to another host, no traversal), known
-secret-returning endpoints (kubeconfig, object storage keys, profile tokens,
-payment methods) are refused outright, and the response is scrubbed.
+> [!WARNING]
+> The HTTP transport uses **one shared server-side `LINODE_TOKEN`**. Every
+> authenticated caller queries the **same** Linode account. This is not a
+> bring-your-own-token design - do not expose one account's data to a shared
+> audience by accident. The transport refuses to start without
+> `AKAMAI_MCP_HTTP_AUTH_TOKEN` (set `AKAMAI_MCP_ALLOW_INSECURE_HTTP=1` to
+> override, which is strongly discouraged). Always run it behind TLS.
 
 ## Read-only and scrubbing guarantees
 
 - Every tool is annotated `readOnlyHint: true`.
 - The client issues GET only. A static scan and an HTTP-verb guard in the test
   suite fail the build if a mutating call is introduced.
-- Tools return allowlist-serialized dicts, then run through a recursive scrub.
-  Kubeconfigs, access and secret keys, tokens, and payment or PII fields never
-  reach the model.
-- The escape hatch denylists known secret endpoints outright.
+- Curated tools return allowlist-serialized dicts - only known-safe fields leave
+  the SDK - then run through a recursive scrub. Kubeconfigs, access and secret
+  keys, tokens, and payment and PII fields do not reach the model on these paths.
+- The escape hatch (`linode_api_get`) returns raw API objects passed through the
+  scrub only, and refuses a denylist of known secret-returning endpoints. The
+  scrub strips known secret material (kubeconfigs, keys, tokens), but a raw
+  account endpoint can still surface account PII - keep the token
+  read-only-scoped and prefer the curated `account` tools for account data.
 
 See [SECURITY.md](SECURITY.md) for the full posture.
 
-## Testing
-
-The suite runs against a mocked Linode API and makes zero live calls. The SDK is
-mocked at its synchronous boundary.
+## Development
 
 ```bash
-uv run pytest -q
+uv sync
+uv run akamai-cloud-mcp --help
+```
+
+Run the checks the way CI does:
+
+```bash
+uv run pytest -q       # mocked Linode API, zero live calls
 uv run ruff check .
 uv run mypy
 ```
 
-Read-only is enforced by a static scan that rejects mutating calls in `src/` and
-a runtime guard that fails if any non-GET HTTP verb fires during a tool run. CI
-runs all of this on Python 3.11 and 3.12. A separate scheduled job
-(`pricing-staleness.yml`) fetches the public type endpoints and flags price drift
-against `scripts/pricing_baseline.json`; it needs no credentials because those
-endpoints are unauthenticated.
+CI runs ruff, mypy, and pytest on Python 3.11 and 3.12 (read-only enforcement is
+covered by the static scan and verb-guard tests, described under
+[Read-only and scrubbing guarantees](#read-only-and-scrubbing-guarantees)). A
+separate scheduled job (`pricing-staleness.yml`) flags price drift against
+`scripts/pricing_baseline.json` using the public type endpoints, so it needs no
+credentials.
+
+To build and run the wheel locally:
+
+```bash
+uv build
+uvx --from ./dist/akamai_cloud_mcp-*.whl akamai-cloud-mcp --help
+```
+
+## Status
+
+v0.1.0. v1 is read-only and ships no write or mutating operations. See
+[CHANGELOG.md](CHANGELOG.md).
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). The bar is the CI gates above plus the
+read-only rule: no tool may issue a non-GET request.
 
 ## License
 

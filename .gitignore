@@ -231,3 +231,4 @@ CLAUDE.md
 # Extra secret patterns
 *.kubeconfig
 kubeconfig*
+.env

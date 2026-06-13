@@ -39,9 +39,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "fastmcp", specifier = ">=2.8" },
+    { name = "fastmcp", specifier = ">=3,<4" },
     { name = "httpx", specifier = ">=0.27" },
-    { name = "linode-api4", specifier = ">=5.0" },
+    { name = "linode-api4", specifier = ">=5,<6" },
     { name = "pydantic", specifier = ">=2.6" },
 ]
 

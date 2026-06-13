@@ -120,6 +120,30 @@ class LinodeClientWrapper:
 
     # -- Paginated reads --------------------------------------------------
 
+    def get_all(self, path: str, params: dict[str, Any] | None = None) -> list[Any]:
+        """GET every page of an authenticated endpoint and return one flat list.
+
+        Linode list endpoints are paginated; a single GET returns only the first
+        page (default 100 rows). The curated list_* tools use this so an account
+        with more than one page of a resource is not silently truncated to page 1
+        while still reporting the list as complete. Handles both the paginated
+        envelope ({data, page, pages}) and a bare-list response.
+        """
+        base = dict(params or {})
+        base["page_size"] = self._config.page_size or 100
+        first = self.get(path, {**base, "page": 1})
+        if isinstance(first, list):
+            return first
+        if not isinstance(first, dict):
+            return [first]
+        rows: list[Any] = list(first.get("data") or [])
+        pages = int(first.get("pages") or 1)
+        for page in range(2, pages + 1):
+            resp = self.get(path, {**base, "page": page})
+            if isinstance(resp, dict):
+                rows.extend(resp.get("data") or [])
+        return rows
+
     def public_get_all(self, path: str, params: dict[str, Any] | None = None) -> list[Any]:
         """GET every page of a public endpoint and return one flat list of rows.
 

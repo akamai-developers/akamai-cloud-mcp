@@ -58,6 +58,28 @@ _SECRET_KEY_SUBSTRINGS = (
     "ssn",
 )
 
+# Account-holder PII fields, matched by EXACT key name (not substring) so we do
+# not redact lookalikes - notably "address" (an IP address that list_ips returns)
+# must survive, while "address_1"/"address_2" (street address) must not. These
+# are the fields a raw /account read would otherwise hand the model through the
+# escape hatch, which the allowlist serializers strip on the curated paths.
+_PII_KEYS = frozenset(
+    {
+        "first_name",
+        "last_name",
+        "email",
+        "phone",
+        "address_1",
+        "address_2",
+        "city",
+        "state",
+        "zip",
+        "credit_card",
+        "last_four",
+        "paypal",
+    }
+)
+
 # Keys that contain a secret substring but are safe (allowlisted past the filter).
 # "authorized" / "authorized_keys count" style fields are not credentials, but a
 # raw authorized_keys VALUE could be, so we do NOT allowlist those here.
@@ -78,6 +100,8 @@ _LINODE_TOKEN_RE = re.compile(r"^[0-9a-f]{64}$")
 
 def _key_is_secret(key: str) -> bool:
     lowered = key.lower()
+    if lowered in _PII_KEYS:
+        return True
     if any(allowed == lowered for allowed in _KEY_ALLOWLIST):
         return False
     return any(sub in lowered for sub in _SECRET_KEY_SUBSTRINGS)

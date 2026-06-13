@@ -74,9 +74,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     def get_region_availability(region: str | None = None) -> dict[str, Any]:
         try:
             if region:
-                resp = ctx.client.public_get(f"/regions/{region}/availability")
+                resp = ctx.client.public_get_all(f"/regions/{region}/availability")
             else:
-                resp = ctx.client.public_get("/regions/availability")
+                resp = ctx.client.public_get_all("/regions/availability")
         except Exception as exc:
             raise map_api_error(exc) from exc
         rows = _data_list(resp)

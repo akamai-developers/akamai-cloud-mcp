@@ -108,7 +108,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         "--max-results",
         type=int,
         default=None,
-        help="Cap rows returned by list_* tools (default 200).",
+        help="Cap rows returned by list_* tools (default 50).",
     )
     parser.add_argument(
         "--allow-write",

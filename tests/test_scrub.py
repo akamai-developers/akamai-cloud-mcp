@@ -48,6 +48,41 @@ def test_redacts_value_shapes() -> None:
     assert out["d"] == REDACTED
 
 
+def test_redacts_account_pii_by_key() -> None:
+    # Escape-hatch /account read: PII and card data must be redacted even though
+    # the allowlist serializer is not applied on that path.
+    out = scrub(
+        {
+            "company": "Example Co",
+            "country": "US",
+            "balance": 0.0,
+            "first_name": "Pat",
+            "last_name": "Doe",
+            "email": "owner@example.com",
+            "phone": "+1-555-0100",
+            "address_1": "123 Main St",
+            "city": "Philadelphia",
+            "state": "PA",
+            "zip": "19103",
+            "credit_card": {"last_four": "1111", "number": "4111111111111111"},
+        }
+    )
+    assert out["company"] == "Example Co"
+    assert out["country"] == "US"
+    for field in ("first_name", "last_name", "email", "phone", "address_1", "city", "state", "zip"):
+        assert out[field] == REDACTED
+    # The whole credit_card object is redacted, so the card number cannot leak.
+    assert out["credit_card"] == REDACTED
+
+
+def test_keeps_ip_address_field() -> None:
+    # "address" (an IP that list_ips returns) is NOT PII and must survive; only
+    # street-address fields (address_1/address_2) are redacted.
+    out = scrub({"address": "192.0.2.10", "type": "ipv4", "rdns": "li-1.members.linode.com"})
+    assert out["address"] == "192.0.2.10"
+    assert out["type"] == "ipv4"
+
+
 def test_keeps_normal_values() -> None:
     payload = {
         "id": 123,

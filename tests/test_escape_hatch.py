@@ -13,6 +13,7 @@ from akamai_cloud_mcp import client as client_mod
 from akamai_cloud_mcp.domains.escape_hatch import is_denied, normalize_path
 from akamai_cloud_mcp.errors import ToolError
 from akamai_cloud_mcp.server import build_server
+from tests.conftest import _FAKE_CARD, _FAKE_EMAIL, _FAKE_PHONE
 
 
 async def _call(mcp: Any, name: str, args: dict[str, Any] | None = None) -> Any:
@@ -62,6 +63,24 @@ def test_denylist_matches() -> None:
     assert not is_denied("/images")
 
 
+def test_normalize_path_rejects_encoded_traversal() -> None:
+    # Percent-encoded "../" must be decoded and rejected, not passed through to
+    # the wire where urllib3 would collapse it onto a denied secret endpoint.
+    with pytest.raises(ToolError):
+        normalize_path("/regions/%2e%2e/profile/tokens")
+    with pytest.raises(ToolError):
+        normalize_path("/a/%252e%252e/object-storage/keys")  # double-encoded
+
+
+def test_denylist_catches_encoded_and_double_slash_bypasses() -> None:
+    # Encoded hyphen, encoded slash, doubled slashes, and a /v4 prefix must all
+    # normalize to the canonical secret path so the denylist still trips.
+    assert is_denied(normalize_path("/account/payment%2dmethods"))
+    assert is_denied(normalize_path("/object-storage%2fkeys"))
+    assert is_denied(normalize_path("/object-storage//keys"))
+    assert is_denied(normalize_path("/v4/profile/tokens"))
+
+
 # -- tool-level behavior --------------------------------------------------
 
 
@@ -98,6 +117,27 @@ async def test_escape_hatch_rejects_denylisted_path(mock_get: None) -> None:
             "linode_api_get",
             {"path": "/lke/clusters/555/kubeconfig"},
         )
+
+
+async def test_escape_hatch_rejects_encoded_denylist_bypass(mock_get: None) -> None:
+    # A percent-encoded path that decodes onto a denied secret endpoint must be
+    # refused, not fetched. Regression for the denylist URL-decode bypass.
+    with pytest.raises(ClientToolError):
+        await _call(
+            build_server(domains="escape"),
+            "linode_api_get",
+            {"path": "/account/payment%2dmethods"},
+        )
+
+
+async def test_escape_hatch_account_scrubs_pii(mock_get: None) -> None:
+    # /account is reachable (not a secret endpoint), but a raw read must not hand
+    # the model account-holder PII or card data.
+    data = await _call(build_server(domains="escape"), "linode_api_get", {"path": "/account"})
+    assert data["company"] == "Example Co"
+    blob = json.dumps(data)
+    for leaked in (_FAKE_EMAIL, _FAKE_PHONE, _FAKE_CARD, "Pat", "Doe", "123 Main St", "19103"):
+        assert leaked not in blob
 
 
 class _FakeRateLimit(Exception):

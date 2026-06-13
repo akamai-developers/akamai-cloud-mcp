@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import Any
 
 from akamai_cloud_mcp.context import ServerContext
-from akamai_cloud_mcp.domains._helpers import READ_ONLY, cap, data_list
+from akamai_cloud_mcp.domains._helpers import READ_ONLY, cap
 from akamai_cloud_mcp.errors import map_api_error
 from akamai_cloud_mcp.scrub import scrub
 from akamai_cloud_mcp.serialize import serialize_bucket
@@ -34,10 +34,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     def list_object_storage_buckets(region: str | None = None) -> dict[str, Any]:
         path = f"/object-storage/buckets/{region}" if region else "/object-storage/buckets"
         try:
-            resp = ctx.client.get(path)
+            rows = ctx.client.get_all(path)
         except Exception as exc:
             raise map_api_error(exc) from exc
-        rows = data_list(resp)
         capped, was_capped = cap(rows, ctx.config.max_results)
         result: dict[str, Any] = {
             "region": region,
@@ -60,10 +59,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     )
     def list_object_storage_endpoints() -> dict[str, Any]:
         try:
-            resp = ctx.client.get("/object-storage/endpoints")
+            rows = ctx.client.get_all("/object-storage/endpoints")
         except Exception as exc:
             raise map_api_error(exc) from exc
-        rows = data_list(resp)
         capped, was_capped = cap(rows, ctx.config.max_results)
         result: dict[str, Any] = {
             "count": len(capped),
@@ -101,10 +99,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     )
     def list_object_storage_quotas() -> dict[str, Any]:
         try:
-            resp = ctx.client.get("/object-storage/quotas")
+            rows = ctx.client.get_all("/object-storage/quotas")
         except Exception as exc:
             raise map_api_error(exc) from exc
-        rows = data_list(resp)
         capped, was_capped = cap(rows, ctx.config.max_results)
         result: dict[str, Any] = {
             "count": len(capped),

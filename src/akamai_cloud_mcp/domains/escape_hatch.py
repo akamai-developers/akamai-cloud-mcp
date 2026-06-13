@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import fnmatch
 from typing import Any
+from urllib.parse import unquote
 
 from akamai_cloud_mcp.context import ServerContext
 from akamai_cloud_mcp.domains._helpers import READ_ONLY
@@ -45,6 +46,19 @@ def normalize_path(raw: str) -> str:
         raise ToolError("path is required.")
     path = str(raw).strip()
 
+    # Decode percent-encoding (repeatedly, to undo double-encoding) BEFORE the
+    # safety checks, so an encoded traversal or hyphen - e.g. "%2e%2e" or
+    # "payment%2dmethods" - is evaluated as what it becomes on the wire, not its
+    # encoded disguise. Without this, the denylist below is trivially bypassable.
+    for _ in range(5):
+        decoded = unquote(path)
+        if decoded == path:
+            break
+        path = decoded
+
+    if "\n" in path or "\r" in path:
+        raise ToolError("Path may not contain newlines.")
+
     lowered = path.lower()
     if "://" in lowered or lowered.startswith("//"):
         raise ToolError("Absolute URLs are not allowed. Pass a relative v4 path, e.g. /regions.")
@@ -53,6 +67,10 @@ def normalize_path(raw: str) -> str:
 
     if not path.startswith("/"):
         path = "/" + path
+    # Collapse duplicate slashes so "/object-storage//keys" cannot slip past the
+    # denylist's exact-segment patterns while reaching the same endpoint.
+    while "//" in path:
+        path = path.replace("//", "/")
     # Strip an optional /v4 prefix; the client base already includes it.
     if path.lower().startswith("/v4/"):
         path = path[3:]

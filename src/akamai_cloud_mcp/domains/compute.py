@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from akamai_cloud_mcp.context import ServerContext
-from akamai_cloud_mcp.domains._helpers import READ_ONLY, cap, data_list
+from akamai_cloud_mcp.domains._helpers import READ_ONLY, cap
 from akamai_cloud_mcp.errors import map_api_error
 from akamai_cloud_mcp.scrub import scrub
 from akamai_cloud_mcp.serialize import serialize_instance, serialize_volume
@@ -30,10 +30,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     )
     def list_instances() -> dict[str, Any]:
         try:
-            resp = ctx.client.get("/linode/instances")
+            rows = ctx.client.get_all("/linode/instances")
         except Exception as exc:
             raise map_api_error(exc) from exc
-        rows = data_list(resp)
         capped, was_capped = cap(rows, ctx.config.max_results)
         result: dict[str, Any] = {
             "count": len(capped),
@@ -71,10 +70,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     )
     def list_volumes() -> dict[str, Any]:
         try:
-            resp = ctx.client.get("/volumes")
+            rows = ctx.client.get_all("/volumes")
         except Exception as exc:
             raise map_api_error(exc) from exc
-        rows = data_list(resp)
         capped, was_capped = cap(rows, ctx.config.max_results)
         result: dict[str, Any] = {
             "count": len(capped),

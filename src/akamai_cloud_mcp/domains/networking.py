@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import Any
 
 from akamai_cloud_mcp.context import ServerContext
-from akamai_cloud_mcp.domains._helpers import READ_ONLY, cap, data_list
+from akamai_cloud_mcp.domains._helpers import READ_ONLY, cap
 from akamai_cloud_mcp.errors import map_api_error
 from akamai_cloud_mcp.scrub import scrub
 from akamai_cloud_mcp.serialize import (
@@ -30,10 +30,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
 
     def _list(path: str, key: str, serializer: Any) -> dict[str, Any]:
         try:
-            resp = ctx.client.get(path)
+            rows = ctx.client.get_all(path)
         except Exception as exc:
             raise map_api_error(exc) from exc
-        rows = data_list(resp)
         capped, was_capped = cap(rows, ctx.config.max_results)
         result: dict[str, Any] = {
             "count": len(capped),

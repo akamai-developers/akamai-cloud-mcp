@@ -54,11 +54,40 @@ surface.
 ## Install
 
 The documented install paths are `uvx` and `pipx` (available once published to
-PyPI). For local development:
+PyPI):
+
+```bash
+uvx akamai-cloud-mcp --help
+# or
+pipx install akamai-cloud-mcp
+```
+
+For local development:
 
 ```bash
 uv sync
 uv run akamai-cloud-mcp --help
+```
+
+To build and run the wheel locally:
+
+```bash
+uv build
+uvx --from ./dist/akamai_cloud_mcp-0.1.0-py3-none-any.whl akamai-cloud-mcp --help
+```
+
+## MCP registry
+
+This server is published to the official MCP registry under
+`io.github.akamai-developers/akamai-cloud-mcp`. The `server.json` at the repo root
+describes the PyPI package and the streamable-HTTP remote. The README carries the
+matching `mcp-name:` line for PyPI ownership verification.
+
+Maintainers publish with the `mcp-publisher` CLI (not run here):
+
+```bash
+mcp-publisher login github
+mcp-publisher publish
 ```
 
 ## Token setup

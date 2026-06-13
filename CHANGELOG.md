@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-06-13
+
+First release. Read-only Akamai Cloud (Linode) MCP server with 28 curated tools
+across regions, pricing, compute, LKE, object storage, networking, account, and a
+generic read-only escape hatch.
+
 ### Added
 - Project foundation: `uv`-managed package, `pyproject.toml` with metadata and
   the `akamai-cloud-mcp` console script.

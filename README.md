@@ -66,7 +66,7 @@ where you scope domains, cap results, or change transport. See
 
 ### Claude Desktop
 
-Open **Settings → Developer → Edit Config** and add the server to
+Open **Settings -> Developer -> Edit Config** and add the server to
 `claude_desktop_config.json`:
 
 ```json

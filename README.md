@@ -71,6 +71,26 @@ export LINODE_TOKEN="<your-linode-token>"
 `account:read_only`, `events:read_only`, and the rest as needed. The server never
 logs or echoes the token.
 
+## Pricing
+
+Pricing uses the public type and price endpoints, so catalog questions work even
+without a token. Two details the tools get right so you do not have to:
+
+- **Region price fallback.** A type's top-level `price` is the default-region
+  price. `region_prices[]` lists overrides for the few higher-cost regions
+  (currently Jakarta and Sao Paulo). To price a region, the tool matches the
+  region id in `region_prices[]` and falls back to the default price when there
+  is no override.
+- **Null monthly means metered.** Metered SKUs (network transfer, Object Storage
+  overage) report `monthly` as null, not 0. Null means priced per unit with no
+  monthly cap. The tools never coerce null to 0.
+
+Some costs are invisible to the API (Object Storage Class A/B request pricing,
+free-allotment thresholds, policy facts like no egress fees to Akamai CDN). Those
+live in a curated in-repo supplement, each entry carrying a source and a review
+date. `get_pricing` for the `object_storage` family returns that supplement
+alongside the live storage price.
+
 ## Read-only and scrubbing guarantees
 
 - Every tool is annotated `readOnlyHint: true`.

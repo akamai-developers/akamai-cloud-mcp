@@ -87,6 +87,17 @@ class LinodeClientWrapper:
             resp.raise_for_status()
             return resp.json()
 
+    def public_get(self, path: str, params: dict[str, Any] | None = None) -> Any:
+        """GET a public catalog endpoint, using the token when present.
+
+        Prefers the SDK (auth, retry) when a token is configured, and falls back
+        to an unauthenticated httpx GET otherwise, so catalog and pricing
+        questions work without account credentials.
+        """
+        if self._token:
+            return self.get(path, params)
+        return self.get_unauthenticated(path, params)
+
     # -- Cached price/type reads -----------------------------------------
 
     def cached_get(self, path: str, params: dict[str, Any] | None = None) -> Any:
@@ -100,10 +111,7 @@ class LinodeClientWrapper:
         now = self._now()
         if hit is not None and (now - hit[0]) < PRICE_CACHE_TTL:
             return hit[1]
-        if self._token:
-            value = self.get(path, params)
-        else:
-            value = self.get_unauthenticated(path, params)
+        value = self.public_get(path, params)
         self._cache[key] = (now, value)
         return value
 

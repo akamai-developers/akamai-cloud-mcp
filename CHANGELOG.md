@@ -19,3 +19,11 @@ All notable changes to this project are documented here. The format follows
   `errors.py` (clean error mapping), and the curated pricing supplement loader.
 - Read-only domain module scaffolding for all v1 domains.
 - `ruff` and `mypy` configuration; scrub and server-construction tests.
+- Regions & Catalog tools: `list_regions`, `get_region_availability` (account-wide
+  and per-region), `list_instance_types`.
+- Pricing tool `get_pricing` for compute, block storage, NodeBalancers, network
+  transfer, LKE control plane, and Object Storage, with region price fallback and
+  null-monthly handling. Object Storage results include the curated request
+  pricing supplement.
+- Curated pricing supplement data: Object Storage Class A/B request rates and
+  free quotas, free-allotment thresholds, and policy facts.

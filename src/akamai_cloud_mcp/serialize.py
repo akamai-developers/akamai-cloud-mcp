@@ -33,6 +33,55 @@ def pick(obj: Any, fields: list[str]) -> dict[str, Any]:
     return {name: _normalize(_get(obj, name)) for name in fields}
 
 
+# -- Per-resource allowlists ---------------------------------------------
+
+REGION_FIELDS = [
+    "id",
+    "label",
+    "country",
+    "capabilities",
+    "status",
+    "site_type",
+    "resolvers",
+    "placement_group_limits",
+]
+
+# Type/plan fields. "class" is the API key (the SDK renames it to type_class);
+# raw GET dicts carry "class" directly, so we read both.
+TYPE_FIELDS = [
+    "id",
+    "label",
+    "class",
+    "vcpus",
+    "memory",
+    "disk",
+    "transfer",
+    "network_out",
+    "gpus",
+    "accelerated_devices",
+    "price",
+    "region_prices",
+    "addons",
+    "successor",
+]
+
+
+def serialize_region(obj: Any) -> dict[str, Any]:
+    """Allowlist-serialize a region (SDK object or raw dict)."""
+    return pick(obj, REGION_FIELDS)
+
+
+def serialize_type(obj: Any) -> dict[str, Any]:
+    """Allowlist-serialize an instance/plan type (SDK object or raw dict)."""
+    result = pick(obj, TYPE_FIELDS)
+    # SDK objects expose the class as `type_class`; backfill when "class" missing.
+    if result.get("class") is None:
+        type_class = _get(obj, "type_class")
+        if type_class is not None:
+            result["class"] = _normalize(type_class)
+    return result
+
+
 def _normalize(value: Any) -> Any:
     """Coerce SDK value objects into JSON-safe primitives.
 

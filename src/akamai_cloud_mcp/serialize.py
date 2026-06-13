@@ -117,6 +117,46 @@ def serialize_volume(obj: Any) -> dict[str, Any]:
     return pick(obj, VOLUME_FIELDS)
 
 
+# LKE cluster allowlist. kubeconfig is DELIBERATELY absent and must never be added.
+LKE_CLUSTER_FIELDS = [
+    "id",
+    "label",
+    "region",
+    "k8s_version",
+    "tier",
+    "control_plane",
+    "apl_enabled",
+    "tags",
+    "created",
+    "updated",
+]
+
+LKE_POOL_FIELDS = [
+    "id",
+    "type",
+    "count",
+    "autoscaler",
+    "nodes",
+    "disks",
+    "disk_encryption",
+    "labels",
+    "taints",
+    "tags",
+    "k8s_version",
+    "update_strategy",
+]
+
+
+def serialize_lke_cluster(obj: Any) -> dict[str, Any]:
+    """Allowlist-serialize an LKE cluster. Never reads or returns kubeconfig."""
+    return pick(obj, LKE_CLUSTER_FIELDS)
+
+
+def serialize_lke_pool(obj: Any) -> dict[str, Any]:
+    """Allowlist-serialize an LKE node pool."""
+    return pick(obj, LKE_POOL_FIELDS)
+
+
 def serialize_type(obj: Any) -> dict[str, Any]:
     """Allowlist-serialize an instance/plan type (SDK object or raw dict)."""
     result = pick(obj, TYPE_FIELDS)

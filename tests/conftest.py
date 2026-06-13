@@ -238,10 +238,68 @@ VOLUMES = {
     ]
 }
 
+# LKE fixtures. The cluster carries a planted kubeconfig that must NEVER survive.
+_FAKE_KUBECONFIG_B64 = "YXBpVmVyc2lvbjogdjEKa2luZDogQ29uZmlnCg=="
+
+LKE_CLUSTERS = {
+    "data": [
+        {
+            "id": 555,
+            "label": "prod-cluster",
+            "region": "us-east",
+            "k8s_version": "1.31",
+            "tier": "standard",
+            "control_plane": {"high_availability": True},
+            "tags": ["prod"],
+            # Planted secret: a list endpoint must not surface this.
+            "kubeconfig": _FAKE_KUBECONFIG_B64,
+        }
+    ]
+}
+
+LKE_CLUSTER_ONE = {
+    "id": 555,
+    "label": "prod-cluster",
+    "region": "us-east",
+    "k8s_version": "1.31",
+    "tier": "standard",
+    "control_plane": {"high_availability": True},
+    "tags": ["prod"],
+    "kubeconfig": _FAKE_KUBECONFIG_B64,
+}
+
+LKE_POOLS = {
+    "data": [
+        {
+            "id": 700,
+            "type": "g6-standard-4",
+            "count": 3,
+            "autoscaler": {"enabled": True, "min": 3, "max": 6},
+            "nodes": [
+                {"id": "node-1", "instance_id": 901, "status": "ready"},
+                {"id": "node-2", "instance_id": 902, "status": "ready"},
+            ],
+            "tags": [],
+        }
+    ]
+}
+
+LKE_API_ENDPOINTS = {"data": [{"endpoint": "https://555.us-east.linodelke.net:443"}]}
+LKE_ACL = {"acl": {"enabled": True, "addresses": {"ipv4": ["203.0.113.0/24"]}}}
+LKE_DASHBOARD = {"url": "https://555.us-east.linodelke.net/dashboard"}
+LKE_VERSIONS = {"data": [{"id": "1.31"}, {"id": "1.30"}]}
+
 _GET_MAP = {
     "/linode/instances": INSTANCES,
     "/linode/instances/111": INSTANCE_ONE,
     "/volumes": VOLUMES,
+    "/lke/clusters": LKE_CLUSTERS,
+    "/lke/clusters/555": LKE_CLUSTER_ONE,
+    "/lke/clusters/555/pools": LKE_POOLS,
+    "/lke/clusters/555/api-endpoints": LKE_API_ENDPOINTS,
+    "/lke/clusters/555/control_plane_acl": LKE_ACL,
+    "/lke/clusters/555/dashboard": LKE_DASHBOARD,
+    "/lke/versions": LKE_VERSIONS,
 }
 
 _CACHED_GET_MAP = {

@@ -147,6 +147,15 @@ return region, type, status, IPs, image, and specs; `list_volumes` returns block
 storage with the instance each volume is attached to. Results are allowlist
 serialized (only safe fields leave the SDK) and capped at `--max-results`.
 
+## LKE
+
+The `lke` domain lists clusters and Kubernetes versions, and `get_lke_cluster`
+composes a cluster with its node pools, API endpoints, control plane ACL, and
+dashboard URL. The cluster kubeconfig is never read or returned. The tool does
+not fetch the kubeconfig endpoint, the allowlist serializer does not include the
+field, and the recursive scrub is the backstop. Asking for the kubeconfig will
+not surface it.
+
 ## Read-only and scrubbing guarantees
 
 - Every tool is annotated `readOnlyHint: true`.

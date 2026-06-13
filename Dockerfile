@@ -11,8 +11,6 @@
 
 FROM python:3.12-slim
 
-LABEL io.modelcontextprotocol.server.name="io.github.akamai-developers/akamai-cloud-mcp"
-
 # Install uv for a fast, reproducible install.
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 

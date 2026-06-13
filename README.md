@@ -366,12 +366,12 @@ Claude is within about 10 percent):
 
 | Domains loaded | Tools | Tokens (approx) |
 |---|---|---|
-| all (default) | 37 | ~3,440 |
-| `compute,lke,regions` | 9 | ~710 |
-| `pricing` | 3 | ~760 |
-| `databases` | 4 | ~310 |
-| `dns` | 3 | ~270 |
-| `compute` | 3 | ~220 |
+| all (default) | 37 | ~3,990 |
+| `compute,lke,regions` | 9 | ~830 |
+| `pricing` | 3 | ~765 |
+| `databases` | 4 | ~360 |
+| `dns` | 3 | ~350 |
+| `compute` | 3 | ~290 |
 
 Load a subset to shrink the footprint, for example
 `--domains compute,pricing` when you only need inventory and cost.

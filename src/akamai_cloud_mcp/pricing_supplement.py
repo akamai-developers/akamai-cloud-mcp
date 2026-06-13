@@ -32,6 +32,11 @@ def object_storage_allotments() -> dict[str, Any]:
     return load_supplement()["object_storage_allotments"]
 
 
+def transfer_pool() -> dict[str, Any]:
+    pool: dict[str, Any] = load_supplement()["transfer_pool"]
+    return pool
+
+
 def policy_facts() -> list[dict[str, Any]]:
     facts: list[dict[str, Any]] = load_supplement().get("policy_facts", [])
     return facts

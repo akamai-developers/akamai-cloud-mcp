@@ -138,6 +138,28 @@ LKE_TYPES = {
     ]
 }
 
+VOLUME_TYPES = {
+    "data": [
+        {
+            "id": "volume",
+            "label": "Storage Volume",
+            "price": {"hourly": 0.00015, "monthly": 0.1},
+            "region_prices": [],
+        }
+    ]
+}
+
+NODEBALANCER_TYPES = {
+    "data": [
+        {
+            "id": "nodebalancer",
+            "label": "NodeBalancer",
+            "price": {"hourly": 0.015, "monthly": 10.0},
+            "region_prices": [],
+        }
+    ]
+}
+
 REGION_AVAILABILITY = {
     "data": [
         {"region": "us-east", "plan": "g6-standard-1", "available": True},
@@ -157,6 +179,8 @@ _CACHED_GET_MAP = {
     "/network-transfer/prices": NETWORK_TRANSFER_PRICES,
     "/object-storage/types": OBJECT_STORAGE_TYPES,
     "/lke/types": LKE_TYPES,
+    "/volumes/types": VOLUME_TYPES,
+    "/nodebalancers/types": NODEBALANCER_TYPES,
 }
 
 _PUBLIC_GET_MAP = {

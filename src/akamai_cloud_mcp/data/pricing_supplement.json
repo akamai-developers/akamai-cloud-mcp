@@ -25,12 +25,14 @@
     "description": "Free allotments that gate overage. Apply before charging overage.",
     "included_storage_gb": 250,
     "included_transfer_gb": 1024,
+    "storage_overage_per_gb_month": 0.02,
     "source": "Akamai/Linode Object Storage pricing (techdocs)",
     "last_reviewed": "2026-06-13"
   },
   "transfer_pool": {
     "description": "Network transfer pool included with account resources.",
     "included_transfer_gb": 1024,
+    "overage_per_gb": 0.005,
     "source": "Akamai/Linode pricing (techdocs)",
     "last_reviewed": "2026-06-13"
   },

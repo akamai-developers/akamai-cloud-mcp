@@ -27,3 +27,12 @@ All notable changes to this project are documented here. The format follows
   pricing supplement.
 - Curated pricing supplement data: Object Storage Class A/B request rates and
   free quotas, free-allotment thresholds, and policy facts.
+- `find_gpu_availability`: returns gpu and accelerated plans with prices and the
+  regions where each is in stock; flags marketing-only SKUs separately.
+- `estimate_cost`: composed hourly and monthly estimate of a described stack
+  (instances with backups, volumes, NodeBalancers, LKE control-plane tier, and
+  Object Storage usage), with itemized source-labeled lines, explicit
+  assumptions, and free allotments applied before overage. Pinned input model.
+- Pricing staleness diff plus a golden-output test for the worked example.
+- Supplement additions: Object Storage storage overage rate and network transfer
+  overage rate.

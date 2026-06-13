@@ -91,6 +91,55 @@ live in a curated in-repo supplement, each entry carrying a source and a review
 date. `get_pricing` for the `object_storage` family returns that supplement
 alongside the live storage price.
 
+## Worked example: estimate_cost
+
+`estimate_cost` composes a stack from live prices plus the curated supplement.
+Given this request:
+
+```json
+{
+  "region": "us-east",
+  "instances": [{"type": "g6-standard-1", "count": 1, "backups": true}],
+  "volumes": [{"size_gb": 100, "count": 1}],
+  "nodebalancers": 1,
+  "lke_tier": "ha",
+  "object_storage": {
+    "storage_gb": 500,
+    "class_a_requests": 2000000,
+    "class_b_requests": 12500000,
+    "egress_gb": 0
+  }
+}
+```
+
+it returns itemized lines, each labeled by source, with free allotments applied
+before overage:
+
+| Line | Source | Monthly |
+|---|---|---|
+| 1x g6-standard-1 | live API | 10.00 |
+| backups for 1x g6-standard-1 | live API | 2.50 |
+| 1x 100GB block storage | live API | 10.00 |
+| 1x NodeBalancer | live API | 10.00 |
+| LKE ha control plane | live API | 60.00 |
+| 500GB stored (250GB included) | curated supplement | 5.00 |
+| 2,000,000 class A requests (1,000,000 free) | curated supplement | 5.00 |
+| 12,500,000 class B requests (12,500,000 free) | curated supplement | 0.00 |
+
+Total: 102.50/month. The class B requests sit exactly at the free quota, so they
+add nothing. LKE worker nodes are priced as their underlying instance types, so
+add them under `instances`. These figures match the golden-output test, so the
+example and the tool cannot drift apart.
+
+## find_gpu_availability
+
+`find_gpu_availability` returns both the `gpu` class (NVIDIA RTX plans, `gpus >
+0`) and the `accelerated` class (for example NETINT VPU plans,
+`accelerated_devices > 0` and `gpus == 0`), each with price and the regions where
+it is in stock. Pass a region to scope it. Marketing-only SKUs that are not
+self-serve priced (for example RTX PRO 6000 Blackwell, "by request") are listed
+separately so they are visible without being treated as orderable.
+
 ## Read-only and scrubbing guarantees
 
 - Every tool is annotated `readOnlyHint: true`.

@@ -55,3 +55,8 @@ All notable changes to this project are documented here. The format follows
   v4 path, with path validation (relative only, no host override, no traversal),
   a denylist for known secret endpoints (kubeconfig, object storage keys, profile
   tokens, payment methods), and recursive scrubbing of the response.
+- Read-only enforcement tests: a static scan of `src/` for mutating calls and a
+  runtime guard that fails on any non-GET HTTP verb, plus a check that every tool
+  is annotated `readOnlyHint`.
+- Transport and HTTP-auth tests; GitHub Actions CI (ruff, mypy, pytest on Python
+  3.11 and 3.12) and a scheduled live pricing-staleness workflow with a baseline.

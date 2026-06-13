@@ -2,6 +2,9 @@
 
 mcp-name: io.github.akamai-developers/akamai-cloud-mcp
 
+[![CI](https://github.com/akamai-developers/akamai-cloud-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/akamai-developers/akamai-cloud-mcp/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 A read-only [Model Context Protocol](https://modelcontextprotocol.io) server for
 Akamai Cloud (Linode). Point an MCP client (Claude Desktop, Claude Code, Cursor,
 or any MCP client) at it, give it a read-only-scoped Linode token, and ask
@@ -209,6 +212,24 @@ payment methods) are refused outright, and the response is scrubbed.
 - The escape hatch denylists known secret endpoints outright.
 
 See [SECURITY.md](SECURITY.md) for the full posture.
+
+## Testing
+
+The suite runs against a mocked Linode API and makes zero live calls. The SDK is
+mocked at its synchronous boundary.
+
+```bash
+uv run pytest -q
+uv run ruff check .
+uv run mypy
+```
+
+Read-only is enforced by a static scan that rejects mutating calls in `src/` and
+a runtime guard that fails if any non-GET HTTP verb fires during a tool run. CI
+runs all of this on Python 3.11 and 3.12. A separate scheduled job
+(`pricing-staleness.yml`) fetches the public type endpoints and flags price drift
+against `scripts/pricing_baseline.json`; it needs no credentials because those
+endpoints are unauthenticated.
 
 ## License
 

@@ -1,0 +1,9 @@
+{
+  "description": "Baseline default-region prices for a few stable plans. The scheduled live staleness job compares /linode/types against this. Update intentionally when prices change.",
+  "last_reviewed": "2026-06-13",
+  "types": {
+    "g6-nanode-1": {"hourly": 0.0075, "monthly": 5.0},
+    "g6-standard-1": {"hourly": 0.018, "monthly": 12.0},
+    "g6-standard-2": {"hourly": 0.036, "monthly": 24.0}
+  }
+}

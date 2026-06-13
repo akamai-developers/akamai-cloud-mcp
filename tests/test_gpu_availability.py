@@ -63,7 +63,7 @@ async def test_find_gpu_availability_reads_all_pages(monkeypatch: Any) -> None:
     monkeypatch.setattr(client_mod.LinodeClientWrapper, "cached_get", fake_cached_get)
     monkeypatch.setattr(client_mod.LinodeClientWrapper, "public_get", fake_public_get)
 
-    data = await _call(build_server(domains="pricing"), "find_gpu_availability")
+    data = await _call(build_server(domains="pricing"), "linode_find_gpu_availability")
     plans = {p["id"]: p for p in data["gpu_plans"]}
     assert plans["g2-gpu-rtx4000a1-s"]["available_regions"] == ["eu-central"]
 
@@ -83,7 +83,7 @@ async def test_find_gpu_availability_per_region_without_region_field(monkeypatch
     monkeypatch.setattr(client_mod.LinodeClientWrapper, "public_get", fake_public_get)
 
     data = await _call(
-        build_server(domains="pricing"), "find_gpu_availability", {"region": "eu-central"}
+        build_server(domains="pricing"), "linode_find_gpu_availability", {"region": "eu-central"}
     )
     plans = {p["id"]: p for p in data["gpu_plans"]}
     assert plans["g2-gpu-rtx4000a1-s"]["available_regions"] == ["eu-central"]

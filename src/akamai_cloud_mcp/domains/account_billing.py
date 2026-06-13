@@ -32,7 +32,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     """Register Account & Billing tools on the given FastMCP server."""
 
     @mcp.tool(
-        name="get_account",
+        name="linode_get_account",
         tags={"account"},
         annotations=READ_ONLY,
         description=(
@@ -49,7 +49,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(serialize_account(resp))
 
     @mcp.tool(
-        name="get_account_transfer",
+        name="linode_get_account_transfer",
         tags={"account"},
         annotations=READ_ONLY,
         description=(
@@ -65,7 +65,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(resp)
 
     @mcp.tool(
-        name="list_invoices",
+        name="linode_list_invoices",
         tags={"account"},
         annotations=READ_ONLY,
         description=(
@@ -89,7 +89,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(result)
 
     @mcp.tool(
-        name="list_events",
+        name="linode_list_events",
         tags={"account"},
         annotations=READ_ONLY,
         description=(
@@ -113,7 +113,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(result)
 
     @mcp.tool(
-        name="get_account_limits",
+        name="linode_get_account_limits",
         tags={"account"},
         annotations=READ_ONLY,
         description=(

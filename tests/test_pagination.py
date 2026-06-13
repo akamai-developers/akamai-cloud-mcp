@@ -53,7 +53,7 @@ async def test_list_tool_reports_capped_across_pages(monkeypatch: pytest.MonkeyP
     monkeypatch.setattr(LinodeClientWrapper, "get", _paged_get(pages, total_pages=2))
     config = Config(max_results=50)
     async with Client(build_server(domains="compute", config=config)) as client:
-        result = await client.call_tool("list_instances", {})
+        result = await client.call_tool("linode_list_instances", {})
     data = result.data
     assert data["count"] == 50
     assert data["capped"] is True

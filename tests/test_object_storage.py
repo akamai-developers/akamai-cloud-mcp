@@ -25,11 +25,11 @@ async def _tool_names(mcp: Any) -> set[str]:
 async def test_object_storage_tools_register() -> None:
     names = await _tool_names(build_server(domains="object_storage"))
     assert {
-        "list_object_storage_buckets",
-        "get_object_storage_bucket",
-        "list_object_storage_endpoints",
-        "get_object_storage_transfer",
-        "list_object_storage_quotas",
+        "linode_list_object_storage_buckets",
+        "linode_get_object_storage_bucket",
+        "linode_list_object_storage_endpoints",
+        "linode_get_object_storage_transfer",
+        "linode_list_object_storage_quotas",
     } <= names
 
 
@@ -39,7 +39,7 @@ async def test_no_key_listing_tool_exists() -> None:
 
 
 async def test_buckets_never_return_keys(mock_get: None) -> None:
-    data = await _call(build_server(domains="object_storage"), "list_object_storage_buckets")
+    data = await _call(build_server(domains="object_storage"), "linode_list_object_storage_buckets")
     bucket = data["buckets"][0]
     assert bucket["label"] == "assets"
     assert "access_key" not in bucket
@@ -52,7 +52,7 @@ async def test_buckets_never_return_keys(mock_get: None) -> None:
 async def test_buckets_region_scope(mock_get: None) -> None:
     # No region-specific fixture path is registered, so this confirms the path is
     # built; we just check the unscoped call returns buckets.
-    data = await _call(build_server(domains="object_storage"), "list_object_storage_buckets")
+    data = await _call(build_server(domains="object_storage"), "linode_list_object_storage_buckets")
     assert data["region"] is None
     assert data["count"] == 1
 
@@ -60,7 +60,7 @@ async def test_buckets_region_scope(mock_get: None) -> None:
 async def test_get_single_bucket_never_returns_keys(mock_get: None) -> None:
     data = await _call(
         build_server(domains="object_storage"),
-        "get_object_storage_bucket",
+        "linode_get_object_storage_bucket",
         {"region": "us-east", "bucket": "assets"},
     )
     assert data["label"] == "assets"
@@ -73,15 +73,15 @@ async def test_get_single_bucket_never_returns_keys(mock_get: None) -> None:
 
 
 async def test_endpoints(mock_get: None) -> None:
-    data = await _call(build_server(domains="object_storage"), "list_object_storage_endpoints")
+    data = await _call(build_server(domains="object_storage"), "linode_list_object_storage_endpoints")
     assert data["endpoints"][0]["endpoint_type"] == "E1"
 
 
 async def test_transfer(mock_get: None) -> None:
-    data = await _call(build_server(domains="object_storage"), "get_object_storage_transfer")
+    data = await _call(build_server(domains="object_storage"), "linode_get_object_storage_transfer")
     assert data["quota"] == 1099511627776
 
 
 async def test_quotas(mock_get: None) -> None:
-    data = await _call(build_server(domains="object_storage"), "list_object_storage_quotas")
+    data = await _call(build_server(domains="object_storage"), "linode_list_object_storage_quotas")
     assert data["quotas"][0]["resource_metric"] == "bucket"

@@ -22,16 +22,16 @@ async def _tool_names(mcp: Any) -> set[str]:
 
 async def test_dns_tools_register() -> None:
     names = await _tool_names(build_server(domains="dns"))
-    assert {"list_domains", "get_domain", "list_domain_records"} <= names
+    assert {"linode_list_domains", "linode_get_domain", "linode_list_domain_records"} <= names
 
 
 async def test_dns_domain_toggle_off() -> None:
     names = await _tool_names(build_server(domains="compute"))
-    assert "list_domains" not in names
+    assert "linode_list_domains" not in names
 
 
 async def test_list_domains_shape(mock_get: None) -> None:
-    data = await _call(build_server(domains="dns"), "list_domains")
+    data = await _call(build_server(domains="dns"), "linode_list_domains")
     assert data["count"] == 1
     dom = data["domains"][0]
     assert dom["domain"] == "example.com"
@@ -42,13 +42,13 @@ async def test_list_domains_shape(mock_get: None) -> None:
 
 
 async def test_get_domain_shape(mock_get: None) -> None:
-    data = await _call(build_server(domains="dns"), "get_domain", {"domain_id": 1})
+    data = await _call(build_server(domains="dns"), "linode_get_domain", {"domain_id": 1})
     assert data["domain"] == "example.com"
     assert data["soa_email"] == "admin@example.com"
 
 
 async def test_list_domain_records(mock_get: None) -> None:
-    data = await _call(build_server(domains="dns"), "list_domain_records", {"domain_id": 1})
+    data = await _call(build_server(domains="dns"), "linode_list_domain_records", {"domain_id": 1})
     assert data["domain_id"] == 1
     assert data["count"] == 2
     types = {r["type"] for r in data["records"]}

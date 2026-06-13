@@ -37,7 +37,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     """Register Regions & Catalog tools on the given FastMCP server."""
 
     @mcp.tool(
-        name="list_regions",
+        name="linode_list_regions",
         tags={"regions"},
         annotations=READ_ONLY,
         description=(
@@ -62,7 +62,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(result)
 
     @mcp.tool(
-        name="get_region_availability",
+        name="linode_get_region_availability",
         tags={"regions"},
         annotations=READ_ONLY,
         description=(
@@ -92,7 +92,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(result)
 
     @mcp.tool(
-        name="list_instance_types",
+        name="linode_list_instance_types",
         tags={"regions"},
         annotations=READ_ONLY,
         description=(

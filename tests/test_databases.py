@@ -27,15 +27,15 @@ async def _tool_names(mcp: Any) -> set[str]:
 async def test_database_tools_register() -> None:
     names = await _tool_names(build_server(domains="databases"))
     assert {
-        "list_databases",
-        "get_database",
-        "list_database_engines",
-        "list_database_types",
+        "linode_list_databases",
+        "linode_get_database",
+        "linode_list_database_engines",
+        "linode_list_database_types",
     } <= names
 
 
 async def test_list_databases_drops_credentials(mock_get: None) -> None:
-    data = await _call(build_server(domains="databases"), "list_databases")
+    data = await _call(build_server(domains="databases"), "linode_list_databases")
     assert data["count"] == 1
     db = data["databases"][0]
     assert db["engine"] == "mysql"
@@ -49,7 +49,7 @@ async def test_list_databases_drops_credentials(mock_get: None) -> None:
 async def test_get_database_routes_by_engine(mock_get: None) -> None:
     data = await _call(
         build_server(domains="databases"),
-        "get_database",
+        "linode_get_database",
         {"engine": "mysql", "database_id": 55},
     )
     assert data["database"]["id"] == 55
@@ -61,13 +61,13 @@ async def test_get_database_rejects_unknown_engine(mock_get: None) -> None:
     with pytest.raises(ToolError):
         await _call(
             build_server(domains="databases"),
-            "get_database",
+            "linode_get_database",
             {"engine": "redis", "database_id": 55},
         )
 
 
 async def test_list_database_engines_and_types(mock_get: None) -> None:
-    engines = await _call(build_server(domains="databases"), "list_database_engines")
+    engines = await _call(build_server(domains="databases"), "linode_list_database_engines")
     assert {e["engine"] for e in engines["engines"]} == {"mysql", "postgresql"}
-    types = await _call(build_server(domains="databases"), "list_database_types")
+    types = await _call(build_server(domains="databases"), "linode_list_database_types")
     assert types["types"][0]["class"] == "dedicated"

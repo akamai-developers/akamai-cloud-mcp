@@ -23,7 +23,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     """Register LKE tools on the given FastMCP server."""
 
     @mcp.tool(
-        name="list_lke_clusters",
+        name="linode_list_lke_clusters",
         tags={"lke"},
         annotations=READ_ONLY,
         description=(
@@ -48,7 +48,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(result)
 
     @mcp.tool(
-        name="get_lke_cluster",
+        name="linode_get_lke_cluster",
         tags={"lke"},
         annotations=READ_ONLY,
         description=(
@@ -91,7 +91,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(result)
 
     @mcp.tool(
-        name="list_kubernetes_versions",
+        name="linode_list_kubernetes_versions",
         tags={"lke"},
         annotations=READ_ONLY,
         description=(

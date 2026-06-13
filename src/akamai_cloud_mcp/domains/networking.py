@@ -45,11 +45,11 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(result)
 
     @mcp.tool(
-        name="list_firewalls",
+        name="linode_list_firewalls",
         tags={"networking"},
         annotations=READ_ONLY,
         description=(
-            "List Cloud Firewalls with their status and tags. Use get_firewall for "
+            "List Cloud Firewalls with their status and tags. Use linode_get_firewall for "
             "one firewall's rules and attached resources."
         ),
     )
@@ -57,7 +57,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return _list("/networking/firewalls", "firewalls", serialize_firewall)
 
     @mcp.tool(
-        name="get_firewall",
+        name="linode_get_firewall",
         tags={"networking"},
         annotations=READ_ONLY,
         description=(
@@ -73,7 +73,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(serialize_firewall_detail(detail))
 
     @mcp.tool(
-        name="list_ips",
+        name="linode_list_ips",
         tags={"networking"},
         annotations=READ_ONLY,
         description=(
@@ -85,7 +85,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return _list("/networking/ips", "ips", serialize_ip)
 
     @mcp.tool(
-        name="list_vlans",
+        name="linode_list_vlans",
         tags={"networking"},
         annotations=READ_ONLY,
         description="List VLANs with their region, CIDR, and attached instances.",
@@ -94,7 +94,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return _list("/networking/vlans", "vlans", serialize_vlan)
 
     @mcp.tool(
-        name="list_vpcs",
+        name="linode_list_vpcs",
         tags={"networking"},
         annotations=READ_ONLY,
         description=(
@@ -106,7 +106,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return _list("/vpcs", "vpcs", serialize_vpc)
 
     @mcp.tool(
-        name="get_vpc",
+        name="linode_get_vpc",
         tags={"networking"},
         annotations=READ_ONLY,
         description="Get one VPC by id, including its subnets and the instances in each subnet.",
@@ -122,7 +122,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(result)
 
     @mcp.tool(
-        name="list_nodebalancers",
+        name="linode_list_nodebalancers",
         tags={"networking"},
         annotations=READ_ONLY,
         description=(

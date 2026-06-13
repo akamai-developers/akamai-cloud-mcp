@@ -25,11 +25,11 @@ async def _tool_names(mcp: Any) -> set[str]:
 async def test_account_tools_register() -> None:
     names = await _tool_names(build_server(domains="account"))
     assert {
-        "get_account",
-        "get_account_transfer",
-        "list_invoices",
-        "list_events",
-        "get_account_limits",
+        "linode_get_account",
+        "linode_get_account_transfer",
+        "linode_list_invoices",
+        "linode_list_events",
+        "linode_get_account_limits",
     } <= names
 
 
@@ -37,17 +37,17 @@ async def test_account_domain_toggle_off() -> None:
     # CRITICAL: dropping the account domain removes exactly its tools.
     names = await _tool_names(build_server(domains="compute,pricing"))
     for tool in (
-        "get_account",
-        "get_account_transfer",
-        "list_invoices",
-        "list_events",
-        "get_account_limits",
+        "linode_get_account",
+        "linode_get_account_transfer",
+        "linode_list_invoices",
+        "linode_list_events",
+        "linode_get_account_limits",
     ):
         assert tool not in names
 
 
 async def test_get_account_redacts_pii_and_payment(mock_get: None) -> None:
-    data = await _call(build_server(domains="account"), "get_account")
+    data = await _call(build_server(domains="account"), "linode_get_account")
     assert data["company"] == "Example Co"
     assert data["country"] == "US"
     # PII / payment must be absent.
@@ -61,13 +61,13 @@ async def test_get_account_redacts_pii_and_payment(mock_get: None) -> None:
 
 
 async def test_get_account_transfer(mock_get: None) -> None:
-    data = await _call(build_server(domains="account"), "get_account_transfer")
+    data = await _call(build_server(domains="account"), "linode_get_account_transfer")
     assert data["quota"] == 1024
     assert data["region_transfers"][0]["id"] == "us-east"
 
 
 async def test_list_invoices_no_payment_detail(mock_get: None) -> None:
-    data = await _call(build_server(domains="account"), "list_invoices")
+    data = await _call(build_server(domains="account"), "linode_list_invoices")
     inv = data["invoices"][0]
     assert inv["total"] == 106.0
     assert "payment_method" not in inv
@@ -75,12 +75,12 @@ async def test_list_invoices_no_payment_detail(mock_get: None) -> None:
 
 
 async def test_list_events(mock_get: None) -> None:
-    data = await _call(build_server(domains="account"), "list_events")
+    data = await _call(build_server(domains="account"), "linode_list_events")
     assert data["events"][0]["action"] == "linode_boot"
 
 
 async def test_get_account_limits_composed(mock_get: None) -> None:
-    data = await _call(build_server(domains="account"), "get_account_limits")
+    data = await _call(build_server(domains="account"), "linode_get_account_limits")
     assert "does not expose a single" in data["summary"]
     assert len(data["rate_limits"]["limits"]) >= 1
     # Object Storage quotas come from the only quota API Linode exposes.

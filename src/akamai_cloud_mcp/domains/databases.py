@@ -33,7 +33,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     """Register Managed Databases tools on the given FastMCP server."""
 
     @mcp.tool(
-        name="list_databases",
+        name="linode_list_databases",
         tags={"databases"},
         annotations=READ_ONLY,
         description=(
@@ -58,13 +58,13 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(result)
 
     @mcp.tool(
-        name="get_database",
+        name="linode_get_database",
         tags={"databases"},
         annotations=READ_ONLY,
         description=(
             "Get one Managed Database by engine and id, with version, region, "
             "status, host, port, and maintenance window. engine must be 'mysql' or "
-            "'postgresql' (take it from list_databases). The root password is never "
+            "'postgresql' (take it from linode_list_databases). The root password is never "
             "returned."
         ),
     )
@@ -82,7 +82,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub({"database": serialize_database(resp)})
 
     @mcp.tool(
-        name="list_database_engines",
+        name="linode_list_database_engines",
         tags={"databases"},
         annotations=READ_ONLY,
         description=(
@@ -106,7 +106,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(result)
 
     @mcp.tool(
-        name="list_database_types",
+        name="linode_list_database_types",
         tags={"databases"},
         annotations=READ_ONLY,
         description=(

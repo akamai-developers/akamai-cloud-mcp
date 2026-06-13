@@ -21,7 +21,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     """Register DNS tools on the given FastMCP server."""
 
     @mcp.tool(
-        name="list_domains",
+        name="linode_list_domains",
         tags={"dns"},
         annotations=READ_ONLY,
         description=(
@@ -45,12 +45,12 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(result)
 
     @mcp.tool(
-        name="get_domain",
+        name="linode_get_domain",
         tags={"dns"},
         annotations=READ_ONLY,
         description=(
             "Get one DNS domain (zone) by id, with its type, status, SOA email, "
-            "SOA timers, and master/AXFR IPs. Use list_domain_records for its "
+            "SOA timers, and master/AXFR IPs. Use linode_list_domain_records for its "
             "records."
         ),
     )
@@ -62,7 +62,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(serialize_domain(resp))
 
     @mcp.tool(
-        name="list_domain_records",
+        name="linode_list_domain_records",
         tags={"dns"},
         annotations=READ_ONLY,
         description=(

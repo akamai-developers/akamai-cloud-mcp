@@ -70,9 +70,9 @@ async def test_runtime_http_verb_guard(
         monkeypatch.setattr(httpx.Client, verb, forbidden, raising=False)
 
     async with Client(build_server(domains="all")) as client:
-        await client.call_tool("list_regions", {})
-        await client.call_tool("list_instances", {})
-        await client.call_tool("get_pricing", {"family": "compute"})
+        await client.call_tool("linode_list_regions", {})
+        await client.call_tool("linode_list_instances", {})
+        await client.call_tool("linode_get_pricing", {"family": "compute"})
         await client.call_tool("linode_api_get", {"path": "/images"})
 
 

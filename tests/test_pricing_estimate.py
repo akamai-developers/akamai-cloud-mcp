@@ -38,7 +38,7 @@ async def _call(mcp: Any, name: str, args: dict[str, Any] | None = None) -> Any:
 
 
 async def test_gpu_and_accelerated_both_returned(mock_catalog: None) -> None:
-    data = await _call(build_server(domains="pricing"), "find_gpu_availability")
+    data = await _call(build_server(domains="pricing"), "linode_find_gpu_availability")
     gpu_ids = {p["id"] for p in data["gpu_plans"]}
     accel_ids = {p["id"] for p in data["accelerated_plans"]}
     assert "g2-gpu-rtx4000a1-s" in gpu_ids
@@ -48,20 +48,20 @@ async def test_gpu_and_accelerated_both_returned(mock_catalog: None) -> None:
 
 
 async def test_gpu_excludes_standard_plans(mock_catalog: None) -> None:
-    data = await _call(build_server(domains="pricing"), "find_gpu_availability")
+    data = await _call(build_server(domains="pricing"), "linode_find_gpu_availability")
     all_ids = {p["id"] for p in data["gpu_plans"] + data["accelerated_plans"]}
     assert "g6-standard-1" not in all_ids
 
 
 async def test_gpu_marketing_only_flagged(mock_catalog: None) -> None:
-    data = await _call(build_server(domains="pricing"), "find_gpu_availability")
+    data = await _call(build_server(domains="pricing"), "linode_find_gpu_availability")
     marketing_ids = {p["id"] for p in data["marketing_only"]}
     assert "rtx-pro-6000-blackwell" in marketing_ids
 
 
 async def test_gpu_availability_per_region(mock_catalog: None) -> None:
     data = await _call(
-        build_server(domains="pricing"), "find_gpu_availability", {"region": "us-east"}
+        build_server(domains="pricing"), "linode_find_gpu_availability", {"region": "us-east"}
     )
     gpu = next(p for p in data["gpu_plans"] if p["id"] == "g2-gpu-rtx4000a1-s")
     assert "us-east" in gpu["available_regions"]
@@ -71,7 +71,7 @@ async def test_gpu_availability_per_region(mock_catalog: None) -> None:
 
 
 async def test_estimate_cost_golden(mock_catalog: None) -> None:
-    data = await _call(build_server(domains="pricing"), "estimate_cost", GOLDEN_STACK)
+    data = await _call(build_server(domains="pricing"), "linode_estimate_cost", GOLDEN_STACK)
     by_cat = {line["category"]: line for line in data["lines"]}
 
     assert by_cat["instance"]["monthly"] == 10.0
@@ -92,7 +92,7 @@ async def test_estimate_cost_golden(mock_catalog: None) -> None:
 
 
 async def test_estimate_cost_sources_labeled(mock_catalog: None) -> None:
-    data = await _call(build_server(domains="pricing"), "estimate_cost", GOLDEN_STACK)
+    data = await _call(build_server(domains="pricing"), "linode_estimate_cost", GOLDEN_STACK)
     by_cat = {line["category"]: line for line in data["lines"]}
     assert by_cat["instance"]["source"] == "live API"
     assert by_cat["lke_control_plane"]["source"] == "live API"
@@ -101,14 +101,14 @@ async def test_estimate_cost_sources_labeled(mock_catalog: None) -> None:
 
 
 async def test_estimate_cost_totals_match_lines(mock_catalog: None) -> None:
-    data = await _call(build_server(domains="pricing"), "estimate_cost", GOLDEN_STACK)
+    data = await _call(build_server(domains="pricing"), "linode_estimate_cost", GOLDEN_STACK)
     assert round(sum(line["monthly"] for line in data["lines"]), 4) == data["total_monthly"]
 
 
 async def test_estimate_cost_free_allotment_before_overage(mock_catalog: None) -> None:
     # storage below the included 250GB should produce zero storage overage.
     stack = {"request": {"object_storage": {"storage_gb": 100}}}
-    data = await _call(build_server(domains="pricing"), "estimate_cost", stack)
+    data = await _call(build_server(domains="pricing"), "linode_estimate_cost", stack)
     storage = next(line for line in data["lines"] if line["category"] == "object_storage_storage")
     assert storage["monthly"] == 0.0
 

@@ -32,11 +32,11 @@ def _has_key(obj: Any, key: str) -> bool:
 
 async def test_lke_tools_register() -> None:
     names = await _tool_names(build_server(domains="lke"))
-    assert {"list_lke_clusters", "get_lke_cluster", "list_kubernetes_versions"} <= names
+    assert {"linode_list_lke_clusters", "linode_get_lke_cluster", "linode_list_kubernetes_versions"} <= names
 
 
 async def test_list_clusters_no_kubeconfig(mock_get: None) -> None:
-    data = await _call(build_server(domains="lke"), "list_lke_clusters")
+    data = await _call(build_server(domains="lke"), "linode_list_lke_clusters")
     assert data["count"] == 1
     cluster = data["clusters"][0]
     assert cluster["id"] == 555
@@ -46,7 +46,7 @@ async def test_list_clusters_no_kubeconfig(mock_get: None) -> None:
 
 
 async def test_get_cluster_composes_subresources(mock_get: None) -> None:
-    data = await _call(build_server(domains="lke"), "get_lke_cluster", {"cluster_id": 555})
+    data = await _call(build_server(domains="lke"), "linode_get_lke_cluster", {"cluster_id": 555})
     assert data["cluster"]["label"] == "prod-cluster"
     assert data["pools"][0]["count"] == 3
     assert data["api_endpoints"][0]["endpoint"].endswith(":443")
@@ -56,12 +56,12 @@ async def test_get_cluster_composes_subresources(mock_get: None) -> None:
 
 
 async def test_get_cluster_never_returns_kubeconfig(mock_get: None) -> None:
-    data = await _call(build_server(domains="lke"), "get_lke_cluster", {"cluster_id": 555})
+    data = await _call(build_server(domains="lke"), "linode_get_lke_cluster", {"cluster_id": 555})
     assert not _has_key(data, "kubeconfig")
     assert _FAKE_KUBECONFIG_B64 not in json.dumps(data)
 
 
 async def test_list_kubernetes_versions(mock_get: None) -> None:
-    data = await _call(build_server(domains="lke"), "list_kubernetes_versions")
+    data = await _call(build_server(domains="lke"), "linode_list_kubernetes_versions")
     ids = {v["id"] for v in data["versions"]}
     assert ids == {"1.31", "1.30"}

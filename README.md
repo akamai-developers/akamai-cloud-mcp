@@ -198,65 +198,65 @@ All tools are read-only and annotated `readOnlyHint: true`. Load a subset with
 
 | Tool | Signature | Description |
 |---|---|---|
-| `list_regions` | `()` | Regions with capabilities, country, site type, and status. |
-| `get_region_availability` | `(region?: str)` | Which plans are in stock, account-wide or scoped to one region. |
-| `list_instance_types` | `()` | Plan types with vcpus, memory, disk, transfer, GPUs, class, and prices. |
+| `linode_list_regions` | `()` | Regions with capabilities, country, site type, and status. |
+| `linode_get_region_availability` | `(region?: str)` | Which plans are in stock, account-wide or scoped to one region. |
+| `linode_list_instance_types` | `()` | Plan types with vcpus, memory, disk, transfer, GPUs, class, and prices. |
 
 ### `pricing`
 
 | Tool | Signature | Description |
 |---|---|---|
-| `get_pricing` | `(family: str, region?: str)` | Per-type pricing for a family (`compute`, `block_storage`, `nodebalancers`, `network_transfer`, `lke`, `object_storage`) with the correct region override applied. |
-| `find_gpu_availability` | `(region?: str)` | GPU and accelerated plans with price and the regions where each is in stock. |
-| `estimate_cost` | `(request: EstimateRequest)` | Itemized hourly and monthly cost of a described stack, each line labeled by source. |
+| `linode_get_pricing` | `(family: str, region?: str)` | Per-type pricing for a family (`compute`, `block_storage`, `nodebalancers`, `network_transfer`, `lke`, `object_storage`) with the correct region override applied. |
+| `linode_find_gpu_availability` | `(region?: str)` | GPU and accelerated plans with price and the regions where each is in stock. |
+| `linode_estimate_cost` | `(request: EstimateRequest)` | Itemized hourly and monthly cost of a described stack, each line labeled by source. |
 
 ### `compute`
 
 | Tool | Signature | Description |
 |---|---|---|
-| `list_instances` | `()` | Compute instances with region, type, status, IPs, image, and specs. |
-| `get_instance` | `(instance_id: int)` | One instance by id. |
-| `list_volumes` | `()` | Block-storage volumes with size, region, status, and attachment. |
+| `linode_list_instances` | `()` | Compute instances with region, type, status, IPs, image, and specs. |
+| `linode_get_instance` | `(instance_id: int)` | One instance by id. |
+| `linode_list_volumes` | `()` | Block-storage volumes with size, region, status, and attachment. |
 
 ### `lke`
 
 | Tool | Signature | Description |
 |---|---|---|
-| `list_lke_clusters` | `()` | LKE clusters with region, Kubernetes version, tier, and control-plane settings. |
-| `get_lke_cluster` | `(cluster_id: int)` | One cluster with node pools, API endpoints, and control-plane ACL. The kubeconfig is never returned. |
-| `list_kubernetes_versions` | `()` | Kubernetes versions available for new and upgraded clusters. |
+| `linode_list_lke_clusters` | `()` | LKE clusters with region, Kubernetes version, tier, and control-plane settings. |
+| `linode_get_lke_cluster` | `(cluster_id: int)` | One cluster with node pools, API endpoints, and control-plane ACL. The kubeconfig is never returned. |
+| `linode_list_kubernetes_versions` | `()` | Kubernetes versions available for new and upgraded clusters. |
 
 ### `object_storage`
 
 | Tool | Signature | Description |
 |---|---|---|
-| `list_object_storage_buckets` | `(region?: str)` | Buckets with hostname, endpoint type, size, and object count. Keys are never returned. |
-| `get_object_storage_bucket` | `(region: str, bucket: str)` | One bucket's detail (hostname, S3 endpoint, size, object count). Keys are never returned. |
-| `list_object_storage_endpoints` | `()` | Endpoints (region, type, S3 hostname) available to the account. |
-| `get_object_storage_transfer` | `()` | Object Storage network transfer for the current billing period. |
-| `list_object_storage_quotas` | `()` | Object Storage quotas (the only quota API Linode exposes). |
+| `linode_list_object_storage_buckets` | `(region?: str)` | Buckets with hostname, endpoint type, size, and object count. Keys are never returned. |
+| `linode_get_object_storage_bucket` | `(region: str, bucket: str)` | One bucket's detail (hostname, S3 endpoint, size, object count). Keys are never returned. |
+| `linode_list_object_storage_endpoints` | `()` | Endpoints (region, type, S3 hostname) available to the account. |
+| `linode_get_object_storage_transfer` | `()` | Object Storage network transfer for the current billing period. |
+| `linode_list_object_storage_quotas` | `()` | Object Storage quotas (the only quota API Linode exposes). |
 
 ### `networking`
 
 | Tool | Signature | Description |
 |---|---|---|
-| `list_firewalls` | `()` | Cloud Firewalls with status and tags. Use `get_firewall` for rules. |
-| `get_firewall` | `(firewall_id: int)` | One firewall with its inbound/outbound rules and attached resources. |
-| `list_ips` | `()` | IP addresses with type, region, reverse DNS, and assignment. |
-| `list_vlans` | `()` | VLANs with region, CIDR, and attached instances. |
-| `list_vpcs` | `()` | VPCs with region and description. |
-| `get_vpc` | `(vpc_id: int)` | One VPC with its subnets and the instances in each. |
-| `list_nodebalancers` | `()` | NodeBalancers with region, hostname, IPs, and transfer usage. |
+| `linode_list_firewalls` | `()` | Cloud Firewalls with status and tags. Use `linode_get_firewall` for rules. |
+| `linode_get_firewall` | `(firewall_id: int)` | One firewall with its inbound/outbound rules and attached resources. |
+| `linode_list_ips` | `()` | IP addresses with type, region, reverse DNS, and assignment. |
+| `linode_list_vlans` | `()` | VLANs with region, CIDR, and attached instances. |
+| `linode_list_vpcs` | `()` | VPCs with region and description. |
+| `linode_get_vpc` | `(vpc_id: int)` | One VPC with its subnets and the instances in each. |
+| `linode_list_nodebalancers` | `()` | NodeBalancers with region, hostname, IPs, and transfer usage. |
 
 ### `account` (on by default)
 
 | Tool | Signature | Description |
 |---|---|---|
-| `get_account` | `()` | Company, country, balance, capabilities. Payment and personal fields redacted. |
-| `get_account_transfer` | `()` | Network transfer for the current billing period, including per-region. |
-| `list_invoices` | `()` | Invoices with date, subtotal, tax, and total. Payment detail redacted. |
-| `list_events` | `()` | Recent account events (the audit log). |
-| `get_account_limits` | `()` | Composed account-limits summary (rate limits, Object Storage quotas, transfer pool). |
+| `linode_get_account` | `()` | Company, country, balance, capabilities. Payment and personal fields redacted. |
+| `linode_get_account_transfer` | `()` | Network transfer for the current billing period, including per-region. |
+| `linode_list_invoices` | `()` | Invoices with date, subtotal, tax, and total. Payment detail redacted. |
+| `linode_list_events` | `()` | Recent account events (the audit log). |
+| `linode_get_account_limits` | `()` | Composed account-limits summary (rate limits, Object Storage quotas, transfer pool). |
 
 Leave `account` out of `--domains` if you do not want account data in the
 model's context.
@@ -265,18 +265,18 @@ model's context.
 
 | Tool | Signature | Description |
 |---|---|---|
-| `list_domains` | `()` | DNS domains (zones) with type, status, and SOA email. |
-| `get_domain` | `(domain_id: int)` | One zone with SOA timers, master/AXFR IPs, and tags. |
-| `list_domain_records` | `(domain_id: int)` | A/AAAA/NS/MX/CNAME/TXT/SRV/PTR/CAA records with name, target, and TTL. |
+| `linode_list_domains` | `()` | DNS domains (zones) with type, status, and SOA email. |
+| `linode_get_domain` | `(domain_id: int)` | One zone with SOA timers, master/AXFR IPs, and tags. |
+| `linode_list_domain_records` | `(domain_id: int)` | A/AAAA/NS/MX/CNAME/TXT/SRV/PTR/CAA records with name, target, and TTL. |
 
 ### `databases`
 
 | Tool | Signature | Description |
 |---|---|---|
-| `list_databases` | `()` | Managed Database clusters (all engines) with engine, version, region, status, plan, and host. Credentials never returned. |
-| `get_database` | `(engine: str, database_id: int)` | One database by engine (`mysql`/`postgresql`) and id, with host, port, and maintenance window. Root password never returned. |
-| `list_database_engines` | `()` | Available database engines and versions. |
-| `list_database_types` | `()` | Managed Database plan types with vcpus, memory, disk, engines, and price. |
+| `linode_list_databases` | `()` | Managed Database clusters (all engines) with engine, version, region, status, plan, and host. Credentials never returned. |
+| `linode_get_database` | `(engine: str, database_id: int)` | One database by engine (`mysql`/`postgresql`) and id, with host, port, and maintenance window. Root password never returned. |
+| `linode_list_database_engines` | `()` | Available database engines and versions. |
+| `linode_list_database_types` | `()` | Managed Database plan types with vcpus, memory, disk, engines, and price. |
 
 ### `escape`
 
@@ -290,9 +290,9 @@ secret-returning endpoints (kubeconfig, Object Storage keys, profile tokens,
 payment methods) are refused outright, and the response is scrubbed. It is why
 there is no tool-per-endpoint sprawl.
 
-## Worked example: `estimate_cost`
+## Worked example: `linode_estimate_cost`
 
-`estimate_cost` composes a stack from live prices plus the curated supplement.
+`linode_estimate_cost` composes a stack from live prices plus the curated supplement.
 Given this request:
 
 ```json
@@ -347,7 +347,7 @@ without a token. Two details the tools get right so you do not have to:
 Some costs are invisible to the API (Object Storage Class A/B request pricing,
 free-allotment thresholds, policy facts like no egress fees to Akamai CDN).
 Those live in a curated in-repo supplement, each entry carrying a source and a
-review date. `get_pricing` for the `object_storage` family returns that
+review date. `linode_get_pricing` for the `object_storage` family returns that
 supplement alongside the live storage price.
 
 ## Context cost

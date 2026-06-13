@@ -20,7 +20,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     """Register Compute tools on the given FastMCP server."""
 
     @mcp.tool(
-        name="list_instances",
+        name="linode_list_instances",
         tags={"compute"},
         annotations=READ_ONLY,
         description=(
@@ -44,7 +44,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(result)
 
     @mcp.tool(
-        name="get_instance",
+        name="linode_get_instance",
         tags={"compute"},
         annotations=READ_ONLY,
         description=(
@@ -60,7 +60,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(serialize_instance(resp))
 
     @mcp.tool(
-        name="list_volumes",
+        name="linode_list_volumes",
         tags={"compute"},
         annotations=READ_ONLY,
         description=(

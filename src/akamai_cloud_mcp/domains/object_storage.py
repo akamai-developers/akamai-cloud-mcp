@@ -22,7 +22,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     """Register Object Storage tools on the given FastMCP server."""
 
     @mcp.tool(
-        name="list_object_storage_buckets",
+        name="linode_list_object_storage_buckets",
         tags={"object_storage"},
         annotations=READ_ONLY,
         description=(
@@ -49,7 +49,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(result)
 
     @mcp.tool(
-        name="get_object_storage_bucket",
+        name="linode_get_object_storage_bucket",
         tags={"object_storage"},
         annotations=READ_ONLY,
         description=(
@@ -66,7 +66,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(serialize_bucket(resp))
 
     @mcp.tool(
-        name="list_object_storage_endpoints",
+        name="linode_list_object_storage_endpoints",
         tags={"object_storage"},
         annotations=READ_ONLY,
         description=(
@@ -90,7 +90,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(result)
 
     @mcp.tool(
-        name="get_object_storage_transfer",
+        name="linode_get_object_storage_transfer",
         tags={"object_storage"},
         annotations=READ_ONLY,
         description=(
@@ -106,7 +106,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(resp)
 
     @mcp.tool(
-        name="list_object_storage_quotas",
+        name="linode_list_object_storage_quotas",
         tags={"object_storage"},
         annotations=READ_ONLY,
         description=(

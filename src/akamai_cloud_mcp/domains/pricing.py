@@ -143,7 +143,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     """Register Pricing & cost tools on the given FastMCP server."""
 
     @mcp.tool(
-        name="get_pricing",
+        name="linode_get_pricing",
         tags={"pricing"},
         annotations=READ_ONLY,
         description=(
@@ -201,7 +201,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(result)
 
     @mcp.tool(
-        name="find_gpu_availability",
+        name="linode_find_gpu_availability",
         tags={"pricing"},
         annotations=READ_ONLY,
         description=(
@@ -281,7 +281,7 @@ def register(mcp: Any, ctx: ServerContext) -> None:
         return scrub(result)
 
     @mcp.tool(
-        name="estimate_cost",
+        name="linode_estimate_cost",
         tags={"pricing"},
         annotations=READ_ONLY,
         description=(

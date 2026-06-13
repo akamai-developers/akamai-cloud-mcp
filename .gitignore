@@ -216,3 +216,18 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Autonomous-build scaffolding (not part of the published server)
+PROMPT.md
+SPEC.md
+BUILD_PROGRESS.md
+build.sh
+build-logs/
+
+# Agent / editor config
+CLAUDE.md
+.claude/
+
+# Extra secret patterns
+*.kubeconfig
+kubeconfig*

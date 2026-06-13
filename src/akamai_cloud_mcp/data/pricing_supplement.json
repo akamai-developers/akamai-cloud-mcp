@@ -1,0 +1,44 @@
+{
+  "object_storage_requests": {
+    "description": "Object Storage request pricing is not exposed by the Linode API. Maintained here from published pricing.",
+    "class_a": {
+      "description": "PUT, COPY, POST, LIST operations.",
+      "price_per_1000": 0.00500,
+      "free_quota_per_month": 1000000
+    },
+    "class_b": {
+      "description": "GET and all other operations not in Class A.",
+      "price_per_1000": 0.00040,
+      "free_quota_per_month": 12500000
+    },
+    "delete": {
+      "description": "DELETE operations are free.",
+      "price_per_1000": 0.0,
+      "free_quota_per_month": null
+    },
+    "effective_no_earlier_than": "2025-10-01",
+    "billed_no_earlier_than": "2026-10-01",
+    "source": "Akamai/Linode Object Storage pricing (techdocs)",
+    "last_reviewed": "2026-06-13"
+  },
+  "object_storage_allotments": {
+    "description": "Free allotments that gate overage. Apply before charging overage.",
+    "included_storage_gb": 250,
+    "included_transfer_gb": 1024,
+    "source": "Akamai/Linode Object Storage pricing (techdocs)",
+    "last_reviewed": "2026-06-13"
+  },
+  "transfer_pool": {
+    "description": "Network transfer pool included with account resources.",
+    "included_transfer_gb": 1024,
+    "source": "Akamai/Linode pricing (techdocs)",
+    "last_reviewed": "2026-06-13"
+  },
+  "policy_facts": [
+    {
+      "fact": "No egress fees between Akamai Cloud Object Storage and Akamai CDN.",
+      "source": "Akamai/Linode pricing (techdocs)",
+      "last_reviewed": "2026-06-13"
+    }
+  ]
+}

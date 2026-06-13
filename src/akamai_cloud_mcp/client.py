@@ -1,0 +1,118 @@
+"""LinodeClient wrapper: the single GET-only gateway to the Linode API.
+
+Read-only is enforced structurally here. This module only ever issues GET. It
+never calls a mutating SDK method (create/update/delete/save/invalidate) and
+never uses an httpx verb other than GET. The static read-only scan in the test
+suite asserts this stays true.
+
+The official `linode_api4` SDK is SYNCHRONOUS (requests-style). We reuse its
+auth, retry, and pagination through `client.get(path)` for the escape hatch and
+for endpoints the SDK does not model. `httpx` is only a last-resort fallback.
+
+A small in-process cache holds the public price/type endpoints for ~24h, keyed
+by path so repeated pricing questions do not re-hit the API.
+"""
+
+from __future__ import annotations
+
+import time
+from typing import Any
+from urllib.parse import urlencode
+
+import httpx
+
+from akamai_cloud_mcp.config import Config
+
+# Public Linode API base for the httpx fallback.
+LINODE_API_BASE = "https://api.linode.com/v4"
+
+# 24 hours, in seconds.
+PRICE_CACHE_TTL = 24 * 60 * 60
+
+
+class LinodeClientWrapper:
+    """GET-only wrapper around the synchronous linode_api4 SDK."""
+
+    def __init__(self, config: Config, token: str | None) -> None:
+        self._config = config
+        self._token = token
+        self._sdk: Any = None
+        self._cache: dict[str, tuple[float, Any]] = {}
+        # Injected clock so tests can control cache expiry; defaults to wall time.
+        self._now = time.monotonic
+
+    # -- SDK access -------------------------------------------------------
+
+    @property
+    def sdk(self) -> Any:
+        """Return a lazily constructed synchronous LinodeClient."""
+        if self._sdk is None:
+            if not self._token:
+                from akamai_cloud_mcp.auth import MissingTokenError
+
+                raise MissingTokenError(
+                    "A Linode token is required for this operation but none was set."
+                )
+            # Imported lazily so `--help` and tests that never touch the API do
+            # not require the SDK to be importable in every environment.
+            from linode_api4 import LinodeClient
+
+            self._sdk = LinodeClient(self._token)
+        return self._sdk
+
+    # -- Raw GET ----------------------------------------------------------
+
+    def get(self, path: str, params: dict[str, Any] | None = None) -> Any:
+        """Issue a GET against a relative Linode API v4 path via the SDK.
+
+        Reuses the SDK's auth/retry/pagination. The SDK's `get` only performs a
+        read; no mutating verb is reachable from here.
+        """
+        return self.sdk.get(path, filters=None) if params is None else self.sdk.get(
+            _with_query(path, params)
+        )
+
+    def get_unauthenticated(self, path: str, params: dict[str, Any] | None = None) -> Any:
+        """GET a public endpoint with httpx, no token required.
+
+        Used only as a fallback for public catalog endpoints when no token is
+        configured. TLS verification stays ON (httpx default).
+        """
+        url = f"{LINODE_API_BASE}{path if path.startswith('/') else '/' + path}"
+        headers = {"Accept": "application/json"}
+        if self._token:
+            headers["Authorization"] = f"Bearer {self._token}"
+        with httpx.Client(timeout=30.0) as http:
+            resp = http.get(url, params=params, headers=headers)
+            resp.raise_for_status()
+            return resp.json()
+
+    # -- Cached price/type reads -----------------------------------------
+
+    def cached_get(self, path: str, params: dict[str, Any] | None = None) -> Any:
+        """GET a public price/type endpoint, cached for ~24h keyed by path+params.
+
+        Falls back to an unauthenticated httpx GET when no token is configured,
+        so catalog/pricing questions work without account credentials.
+        """
+        key = _with_query(path, params) if params else path
+        hit = self._cache.get(key)
+        now = self._now()
+        if hit is not None and (now - hit[0]) < PRICE_CACHE_TTL:
+            return hit[1]
+        if self._token:
+            value = self.get(path, params)
+        else:
+            value = self.get_unauthenticated(path, params)
+        self._cache[key] = (now, value)
+        return value
+
+    def clear_cache(self) -> None:
+        self._cache.clear()
+
+
+def _with_query(path: str, params: dict[str, Any] | None) -> str:
+    if not params:
+        return path
+    sep = "&" if "?" in path else "?"
+    return f"{path}{sep}{urlencode(params)}"

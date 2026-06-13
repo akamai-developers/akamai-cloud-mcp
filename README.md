@@ -1,2 +1,88 @@
-# akamai-cloud-mcp
-This is the official MCP server for Akamai Cloud
+# Akamai Cloud MCP
+
+mcp-name: io.github.akamai-developers/akamai-cloud-mcp
+
+A read-only [Model Context Protocol](https://modelcontextprotocol.io) server for
+Akamai Cloud (Linode). Point an MCP client (Claude Desktop, Claude Code, Cursor,
+or any MCP client) at it, give it a read-only-scoped Linode token, and ask
+natural-language questions about your account: what you run, what a stack would
+cost, where GPUs are in stock, and which account limits apply.
+
+This is one general server, not a fleet of per-service servers. Akamai Cloud is a
+single cohesive API, so the right shape is one curated server with domain modules
+inside, similar to AWS's general API MCP server rather than its per-service fleet.
+The active tool set stays in the low tens.
+
+## Status
+
+Early development. v1 is read-only and ships no write or mutating operations.
+
+## Design
+
+- **Read-only.** No write or mutating operation anywhere in v1. Enforced by a
+  GET-only client, a static code scan, and an HTTP-verb guard in the tests.
+- **Curated, not auto-generated.** A focused tool set tuned for LLM tool
+  selection, plus one generic read-only escape hatch (`linode_api_get`) for the
+  long tail. No tool-per-endpoint sprawl.
+- **Safety first.** A scoped token read from the environment, never logged.
+  Secrets (LKE kubeconfigs, Object Storage keys, tokens, payment and PII fields)
+  are removed from results by allowlist serialization and a recursive scrub.
+- **Domain toggles.** Load only the domain groups you want with `--domains`.
+- **Dual transport.** stdio for local clients, streamable-HTTP for hosted use.
+
+## Domains and tools
+
+All tools are read-only. Load a subset with `--domains compute,pricing`.
+
+| Domain | Tools |
+|---|---|
+| `regions` | `list_regions`, `get_region_availability`, `list_instance_types` |
+| `pricing` | `get_pricing`, `find_gpu_availability`, `estimate_cost` |
+| `compute` | `list_instances`, `get_instance`, `list_volumes` |
+| `lke` | `list_lke_clusters`, `get_lke_cluster`, `list_kubernetes_versions` |
+| `object_storage` | `list_object_storage_buckets`, `list_object_storage_endpoints`, `get_object_storage_transfer`, `list_object_storage_quotas` |
+| `networking` | `list_firewalls`, `list_ips`, `list_vlans`, `list_vpcs`, `get_vpc`, `list_nodebalancers` |
+| `account` | `get_account`, `get_account_transfer`, `list_invoices`, `list_events`, `get_account_limits` |
+| `escape` | `linode_api_get` |
+
+The tool implementations land across the build phases. The table is the target
+surface.
+
+## Install
+
+The documented install paths are `uvx` and `pipx` (available once published to
+PyPI). For local development:
+
+```bash
+uv sync
+uv run akamai-cloud-mcp --help
+```
+
+## Token setup
+
+Create a Linode personal access token with read-only scopes and export it:
+
+```bash
+export LINODE_TOKEN="<your-linode-token>"
+```
+
+`LINODE_API_TOKEN` is accepted as an alias. Recommended scopes are read-only:
+`linodes:read_only`, `lke:read_only`, `object_storage:read_only`,
+`account:read_only`, `events:read_only`, and the rest as needed. The server never
+logs or echoes the token.
+
+## Read-only and scrubbing guarantees
+
+- Every tool is annotated `readOnlyHint: true`.
+- The client issues GET only. A static scan and an HTTP-verb guard in the test
+  suite fail the build if a mutating call is introduced.
+- Tools return allowlist-serialized dicts, then run through a recursive scrub.
+  Kubeconfigs, access and secret keys, tokens, and payment or PII fields never
+  reach the model.
+- The escape hatch denylists known secret endpoints outright.
+
+See [SECURITY.md](SECURITY.md) for the full posture.
+
+## License
+
+[Apache-2.0](LICENSE).

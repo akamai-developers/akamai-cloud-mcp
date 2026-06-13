@@ -333,10 +333,83 @@ OBJ_QUOTAS = {
     ]
 }
 
+FIREWALLS = {
+    "data": [
+        {
+            "id": 1,
+            "label": "web-fw",
+            "status": "enabled",
+            "rules": {"inbound_policy": "DROP", "outbound_policy": "ACCEPT", "inbound": []},
+            "tags": [],
+        }
+    ]
+}
+
+IPS = {
+    "data": [
+        {
+            "address": "192.0.2.10",
+            "type": "ipv4",
+            "public": True,
+            "rdns": "li-1.members.linode.com",
+            "region": "us-east",
+            "linode_id": 111,
+        }
+    ]
+}
+
+VLANS = {
+    "data": [{"label": "dev-vlan", "region": "us-east", "cidr": "10.0.0.0/24", "linodes": [111]}]
+}
+
+VPCS = {
+    "data": [
+        {
+            "id": 30,
+            "label": "prod-vpc",
+            "description": "Production VPC",
+            "region": "us-east",
+        }
+    ]
+}
+
+VPC_ONE = {
+    "id": 30,
+    "label": "prod-vpc",
+    "description": "Production VPC",
+    "region": "us-east",
+    "subnets": [
+        {"id": 300, "label": "web", "ipv4": "10.0.1.0/24", "linodes": [{"id": 111}]},
+        {"id": 301, "label": "db", "ipv4": "10.0.2.0/24", "linodes": []},
+    ],
+}
+
+NODEBALANCERS = {
+    "data": [
+        {
+            "id": 77,
+            "label": "lb-1",
+            "region": "us-east",
+            "hostname": "nb-192-0-2-30.newark.nodebalancer.linode.com",
+            "ipv4": "192.0.2.30",
+            "ipv6": "2600:3c03::1",
+            "client_conn_throttle": 0,
+            "tags": [],
+            "transfer": {"in": 1.5, "out": 2.5, "total": 4.0},
+        }
+    ]
+}
+
 _GET_MAP = {
     "/linode/instances": INSTANCES,
     "/linode/instances/111": INSTANCE_ONE,
     "/volumes": VOLUMES,
+    "/networking/firewalls": FIREWALLS,
+    "/networking/ips": IPS,
+    "/networking/vlans": VLANS,
+    "/vpcs": VPCS,
+    "/vpcs/30": VPC_ONE,
+    "/nodebalancers": NODEBALANCERS,
     "/object-storage/buckets": OBJ_BUCKETS,
     "/object-storage/endpoints": OBJ_ENDPOINTS,
     "/object-storage/transfer": OBJ_TRANSFER,

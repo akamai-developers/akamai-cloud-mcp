@@ -45,3 +45,5 @@ All notable changes to this project are documented here. The format follows
   `list_object_storage_endpoints`, `get_object_storage_transfer`,
   `list_object_storage_quotas`. Access and secret keys are never returned and
   there is no key-listing tool.
+- Networking tools: `list_firewalls`, `list_ips`, `list_vlans`, `list_vpcs`,
+  `get_vpc` (with subnets), `list_nodebalancers`.

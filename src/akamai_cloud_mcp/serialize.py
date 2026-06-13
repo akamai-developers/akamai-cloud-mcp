@@ -117,6 +117,63 @@ def serialize_volume(obj: Any) -> dict[str, Any]:
     return pick(obj, VOLUME_FIELDS)
 
 
+# -- Networking allowlists -----------------------------------------------
+
+FIREWALL_FIELDS = ["id", "label", "status", "rules", "tags", "entities", "created", "updated"]
+IP_FIELDS = [
+    "address",
+    "type",
+    "public",
+    "rdns",
+    "region",
+    "linode_id",
+    "gateway",
+    "subnet_mask",
+    "prefix",
+    "vpc_nat_1_1",
+]
+VLAN_FIELDS = ["label", "region", "cidr", "linodes", "created"]
+VPC_FIELDS = ["id", "label", "description", "region", "created", "updated"]
+SUBNET_FIELDS = ["id", "label", "ipv4", "linodes", "created", "updated"]
+NODEBALANCER_FIELDS = [
+    "id",
+    "label",
+    "region",
+    "hostname",
+    "ipv4",
+    "ipv6",
+    "client_conn_throttle",
+    "tags",
+    "transfer",
+    "created",
+    "updated",
+]
+
+
+def serialize_firewall(obj: Any) -> dict[str, Any]:
+    return pick(obj, FIREWALL_FIELDS)
+
+
+def serialize_ip(obj: Any) -> dict[str, Any]:
+    return pick(obj, IP_FIELDS)
+
+
+def serialize_vlan(obj: Any) -> dict[str, Any]:
+    return pick(obj, VLAN_FIELDS)
+
+
+def serialize_vpc(obj: Any) -> dict[str, Any]:
+    return pick(obj, VPC_FIELDS)
+
+
+def serialize_subnet(obj: Any) -> dict[str, Any]:
+    return pick(obj, SUBNET_FIELDS)
+
+
+def serialize_nodebalancer(obj: Any) -> dict[str, Any]:
+    return pick(obj, NODEBALANCER_FIELDS)
+
+
 # Object Storage bucket allowlist. No access/secret key fields, ever.
 OBJECT_STORAGE_BUCKET_FIELDS = [
     "label",

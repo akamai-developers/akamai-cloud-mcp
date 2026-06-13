@@ -164,6 +164,13 @@ network transfer for the billing period, and lists the Object Storage quotas,
 which are the only quota API Linode exposes. Access and secret keys are never
 returned and there is no key-listing tool.
 
+## Networking
+
+The `networking` domain lists firewalls, IPs, VLANs, VPCs, and NodeBalancers.
+Subnets are not a top-level list; `get_vpc` returns a VPC with its subnets and
+the instances in each. IPs are returned because the account owns them, but they
+are never logged.
+
 ## Read-only and scrubbing guarantees
 
 - Every tool is annotated `readOnlyHint: true`.

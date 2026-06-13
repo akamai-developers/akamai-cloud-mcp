@@ -48,6 +48,23 @@ All tools are read-only. Load a subset with `--domains compute,pricing`.
 | `account` | `get_account`, `get_account_transfer`, `list_invoices`, `list_events`, `get_account_limits` |
 | `escape` | `linode_api_get` |
 
+## Context cost
+
+Tool definitions count against your model's context window, so this server keeps
+that small on purpose: 28 curated tools instead of one-per-endpoint, plus
+`--domains` to load only what you need. Approximate footprint (measured with a
+GPT tokenizer; Claude is within about 10 percent):
+
+| Domains loaded | Tools | Tokens (approx) |
+|---|---|---|
+| all (default) | 28 | ~2,450 |
+| `compute,lke,regions` | 9 | ~640 |
+| `pricing` | 3 | ~740 |
+| `compute` | 3 | ~195 |
+
+Load a subset to shrink the footprint, for example `--domains compute,pricing`
+when you only need inventory and cost.
+
 ## Install
 
 The documented install paths are `uvx` and `pipx` (available once published to

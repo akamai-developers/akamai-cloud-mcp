@@ -73,7 +73,9 @@ async def test_get_single_bucket_never_returns_keys(mock_get: None) -> None:
 
 
 async def test_endpoints(mock_get: None) -> None:
-    data = await _call(build_server(domains="object_storage"), "linode_list_object_storage_endpoints")
+    data = await _call(
+        build_server(domains="object_storage"), "linode_list_object_storage_endpoints"
+    )
     assert data["endpoints"][0]["endpoint_type"] == "E1"
 
 

@@ -24,7 +24,11 @@ async def _tool_names(mcp: Any) -> set[str]:
 
 async def test_tools_register_under_domains() -> None:
     names = await _tool_names(build_server(domains="regions,pricing"))
-    assert {"linode_list_regions", "linode_get_region_availability", "linode_list_instance_types"} <= names
+    assert {
+        "linode_list_regions",
+        "linode_get_region_availability",
+        "linode_list_instance_types",
+    } <= names
     assert "linode_get_pricing" in names
 
 

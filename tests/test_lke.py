@@ -32,7 +32,11 @@ def _has_key(obj: Any, key: str) -> bool:
 
 async def test_lke_tools_register() -> None:
     names = await _tool_names(build_server(domains="lke"))
-    assert {"linode_list_lke_clusters", "linode_get_lke_cluster", "linode_list_kubernetes_versions"} <= names
+    assert {
+        "linode_list_lke_clusters",
+        "linode_get_lke_cluster",
+        "linode_list_kubernetes_versions",
+    } <= names
 
 
 async def test_list_clusters_no_kubeconfig(mock_get: None) -> None:

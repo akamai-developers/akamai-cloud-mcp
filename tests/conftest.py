@@ -400,10 +400,85 @@ NODEBALANCERS = {
     ]
 }
 
+# Account fixtures. PII and payment fields are planted and must be redacted.
+_FAKE_EMAIL = "owner@example.com"
+_FAKE_PHONE = "+1-555-0100"
+_FAKE_CARD = "4111111111111111"
+
+ACCOUNT = {
+    "company": "Example Co",
+    "country": "US",
+    "balance": 0.0,
+    "balance_uninvoiced": 12.5,
+    "active_since": "2020-01-01T00:00:00",
+    "capabilities": ["Linodes", "Object Storage", "Kubernetes"],
+    "billing_source": "linode",
+    "euuid": "AAAAAAAA-BBBB-CCCC-DDDDDDDDDDDD",
+    # Planted PII / payment: must not survive.
+    "first_name": "Pat",
+    "last_name": "Doe",
+    "email": _FAKE_EMAIL,
+    "phone": _FAKE_PHONE,
+    "address_1": "123 Main St",
+    "city": "Philadelphia",
+    "state": "PA",
+    "zip": "19103",
+    "tax_id": "12-3456789",
+    "credit_card": {"last_four": "1111", "expiry": "12/2030", "number": _FAKE_CARD},
+}
+
+ACCOUNT_TRANSFER = {
+    "used": 500,
+    "quota": 1024,
+    "billable": 0,
+    "region_transfers": [{"id": "us-east", "used": 300, "quota": 1024, "billable": 0}],
+}
+
+INVOICES = {
+    "data": [
+        {
+            "id": 1001,
+            "label": "Invoice #1001",
+            "date": "2026-05-01T00:00:00",
+            "subtotal": 100.0,
+            "tax": 6.0,
+            "total": 106.0,
+            "status": "paid",
+            # Planted payment detail that should be scrubbed if present.
+            "payment_method": {"card_number": _FAKE_CARD},
+        }
+    ]
+}
+
+EVENTS = {
+    "data": [
+        {
+            "id": 9,
+            "action": "linode_boot",
+            "created": "2026-06-01T00:00:00",
+            "entity": {
+                "id": 111,
+                "label": "web-1",
+                "type": "linode",
+                "url": "/v4/linode/instances/111",
+            },
+            "username": "patdoe",
+            "status": "finished",
+            "seen": True,
+            "read": True,
+            "percent_complete": 100,
+        }
+    ]
+}
+
 _GET_MAP = {
     "/linode/instances": INSTANCES,
     "/linode/instances/111": INSTANCE_ONE,
     "/volumes": VOLUMES,
+    "/account": ACCOUNT,
+    "/account/transfer": ACCOUNT_TRANSFER,
+    "/account/invoices": INVOICES,
+    "/account/events": EVENTS,
     "/networking/firewalls": FIREWALLS,
     "/networking/ips": IPS,
     "/networking/vlans": VLANS,

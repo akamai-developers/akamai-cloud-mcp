@@ -117,6 +117,51 @@ def serialize_volume(obj: Any) -> dict[str, Any]:
     return pick(obj, VOLUME_FIELDS)
 
 
+# -- Account & billing allowlists ----------------------------------------
+# These DELIBERATELY exclude PII and payment fields: no first_name, last_name,
+# email, phone, address_1/2, city, state, zip, tax_id, or credit_card. scrub()
+# is the backstop on top of this allowlist.
+ACCOUNT_FIELDS = [
+    "company",
+    "country",
+    "balance",
+    "balance_uninvoiced",
+    "active_since",
+    "capabilities",
+    "active_promotions",
+    "billing_source",
+    "euuid",
+]
+INVOICE_FIELDS = ["id", "label", "date", "subtotal", "tax", "total", "status", "tax_summary"]
+EVENT_FIELDS = [
+    "id",
+    "action",
+    "created",
+    "entity",
+    "username",
+    "status",
+    "message",
+    "seen",
+    "read",
+    "percent_complete",
+    "duration",
+    "rate",
+]
+
+
+def serialize_account(obj: Any) -> dict[str, Any]:
+    """Allowlist-serialize the account, excluding PII and payment fields."""
+    return pick(obj, ACCOUNT_FIELDS)
+
+
+def serialize_invoice(obj: Any) -> dict[str, Any]:
+    return pick(obj, INVOICE_FIELDS)
+
+
+def serialize_event(obj: Any) -> dict[str, Any]:
+    return pick(obj, EVENT_FIELDS)
+
+
 # -- Networking allowlists -----------------------------------------------
 
 FIREWALL_FIELDS = ["id", "label", "status", "rules", "tags", "entities", "created", "updated"]

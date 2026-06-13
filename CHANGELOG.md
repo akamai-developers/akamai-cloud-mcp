@@ -47,3 +47,7 @@ All notable changes to this project are documented here. The format follows
   there is no key-listing tool.
 - Networking tools: `list_firewalls`, `list_ips`, `list_vlans`, `list_vpcs`,
   `get_vpc` (with subnets), `list_nodebalancers`.
+- Account & Billing tools: `get_account` (PII and payment fields redacted),
+  `get_account_transfer`, `list_invoices`, `list_events`, and the composed
+  `get_account_limits`, which is honest that Linode exposes no single per-account
+  service-limit endpoint. The domain can be toggled off with `--domains`.

@@ -171,6 +171,20 @@ Subnets are not a top-level list; `get_vpc` returns a VPC with its subnets and
 the instances in each. IPs are returned because the account owns them, but they
 are never logged.
 
+## Account and billing
+
+The `account` domain returns your own account data: `get_account` (company,
+country, balance, capabilities, with payment-method and personal fields
+redacted), `get_account_transfer`, `list_invoices` (payment detail redacted),
+`list_events`, and `get_account_limits`. This domain is on by default. Turn it
+off by leaving `account` out of `--domains` if you do not want account data in
+the model's context.
+
+`get_account_limits` is honest about a real gap: Linode does not expose a single
+per-account service-limit endpoint, so the tool composes the published API rate
+limits, the Object Storage quotas (the only quota API Linode exposes), and the
+network transfer pool, and says so plainly.
+
 ## Read-only and scrubbing guarantees
 
 - Every tool is annotated `readOnlyHint: true`.

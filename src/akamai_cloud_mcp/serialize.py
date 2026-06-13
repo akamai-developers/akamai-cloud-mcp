@@ -71,6 +71,52 @@ def serialize_region(obj: Any) -> dict[str, Any]:
     return pick(obj, REGION_FIELDS)
 
 
+INSTANCE_FIELDS = [
+    "id",
+    "label",
+    "region",
+    "type",
+    "status",
+    "ipv4",
+    "ipv6",
+    "image",
+    "group",
+    "tags",
+    "hypervisor",
+    "specs",
+    "watchdog_enabled",
+    "site_type",
+    "created",
+    "updated",
+]
+
+VOLUME_FIELDS = [
+    "id",
+    "label",
+    "size",
+    "region",
+    "status",
+    "linode_id",
+    "linode_label",
+    "filesystem_path",
+    "hardware_type",
+    "encryption",
+    "tags",
+    "created",
+    "updated",
+]
+
+
+def serialize_instance(obj: Any) -> dict[str, Any]:
+    """Allowlist-serialize a compute instance (SDK object or raw dict)."""
+    return pick(obj, INSTANCE_FIELDS)
+
+
+def serialize_volume(obj: Any) -> dict[str, Any]:
+    """Allowlist-serialize a block storage volume (SDK object or raw dict)."""
+    return pick(obj, VOLUME_FIELDS)
+
+
 def serialize_type(obj: Any) -> dict[str, Any]:
     """Allowlist-serialize an instance/plan type (SDK object or raw dict)."""
     result = pick(obj, TYPE_FIELDS)

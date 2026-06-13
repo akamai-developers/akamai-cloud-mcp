@@ -140,6 +140,13 @@ it is in stock. Pass a region to scope it. Marketing-only SKUs that are not
 self-serve priced (for example RTX PRO 6000 Blackwell, "by request") are listed
 separately so they are visible without being treated as orderable.
 
+## Inventory
+
+The `compute` domain answers what you run: `list_instances` and `get_instance`
+return region, type, status, IPs, image, and specs; `list_volumes` returns block
+storage with the instance each volume is attached to. Results are allowlist
+serialized (only safe fields leave the SDK) and capped at `--max-results`.
+
 ## Read-only and scrubbing guarantees
 
 - Every tool is annotated `readOnlyHint: true`.

@@ -36,3 +36,5 @@ All notable changes to this project are documented here. The format follows
 - Pricing staleness diff plus a golden-output test for the worked example.
 - Supplement additions: Object Storage storage overage rate and network transfer
   overage rate.
+- Compute tools: `list_instances`, `get_instance`, `list_volumes`, allowlist
+  serialized and result-capped.

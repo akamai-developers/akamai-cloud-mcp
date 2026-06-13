@@ -173,6 +173,77 @@ REGION_AVAILABILITY_ONE = {
     ]
 }
 
+INSTANCES = {
+    "data": [
+        {
+            "id": 111,
+            "label": "web-1",
+            "region": "us-east",
+            "type": "g6-standard-1",
+            "status": "running",
+            "ipv4": ["192.0.2.10"],
+            "ipv6": "2600:3c03::f03c:1234/64",
+            "image": "linode/ubuntu24.04",
+            "tags": ["web", "prod"],
+            "hypervisor": "kvm",
+            "specs": {"vcpus": 1, "memory": 2048, "disk": 51200, "transfer": 2000},
+            # Not in the allowlist; must not appear in serialized output.
+            "alerts": {"cpu": 90},
+        },
+        {
+            "id": 222,
+            "label": "db-1",
+            "region": "us-east",
+            "type": "g6-standard-4",
+            "status": "running",
+            "ipv4": ["192.0.2.20"],
+            "ipv6": "2600:3c03::f03c:5678/64",
+            "image": "linode/debian12",
+            "tags": ["db"],
+            "hypervisor": "kvm",
+            "specs": {"vcpus": 4, "memory": 8192, "disk": 163840, "transfer": 5000},
+        },
+    ]
+}
+
+INSTANCE_ONE = {
+    "id": 111,
+    "label": "web-1",
+    "region": "us-east",
+    "type": "g6-standard-1",
+    "status": "running",
+    "ipv4": ["192.0.2.10"],
+    "ipv6": "2600:3c03::f03c:1234/64",
+    "image": "linode/ubuntu24.04",
+    "tags": ["web", "prod"],
+    "hypervisor": "kvm",
+    "specs": {"vcpus": 1, "memory": 2048, "disk": 51200, "transfer": 2000},
+}
+
+VOLUMES = {
+    "data": [
+        {
+            "id": 9001,
+            "label": "data-vol",
+            "size": 100,
+            "region": "us-east",
+            "status": "active",
+            "linode_id": 111,
+            "linode_label": "web-1",
+            "filesystem_path": "/dev/disk/by-id/scsi-0Linode_Volume_data-vol",
+            "hardware_type": "nvme",
+            "encryption": "enabled",
+            "tags": [],
+        }
+    ]
+}
+
+_GET_MAP = {
+    "/linode/instances": INSTANCES,
+    "/linode/instances/111": INSTANCE_ONE,
+    "/volumes": VOLUMES,
+}
+
 _CACHED_GET_MAP = {
     "/regions": REGIONS,
     "/linode/types": LINODE_TYPES,
@@ -207,3 +278,15 @@ def mock_catalog(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr(client_mod.LinodeClientWrapper, "cached_get", fake_cached_get)
     monkeypatch.setattr(client_mod.LinodeClientWrapper, "public_get", fake_public_get)
+
+
+@pytest.fixture
+def mock_get(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Patch the client wrapper's raw GET to serve account fixtures by path."""
+
+    def fake_get(self: Any, path: str, params: Any = None) -> Any:
+        if path in _GET_MAP:
+            return _GET_MAP[path]
+        raise KeyError(f"unexpected get path: {path}")
+
+    monkeypatch.setattr(client_mod.LinodeClientWrapper, "get", fake_get)

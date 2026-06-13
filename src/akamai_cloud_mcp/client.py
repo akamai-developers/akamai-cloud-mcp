@@ -118,6 +118,33 @@ class LinodeClientWrapper:
     def clear_cache(self) -> None:
         self._cache.clear()
 
+    # -- Paginated reads --------------------------------------------------
+
+    def public_get_all(self, path: str, params: dict[str, Any] | None = None) -> list[Any]:
+        """GET every page of a public endpoint and return one flat list of rows.
+
+        Linode list endpoints are paginated, and a single GET returns only the
+        first page. Callers that must see the whole set use this, otherwise rows
+        on later pages are silently missed (for example /regions/availability,
+        which spans several pages). Handles both the paginated envelope
+        ({data, page, pages}) and a bare-list response, and requests the maximum
+        page size to keep the round trips down.
+        """
+        base = dict(params or {})
+        base["page_size"] = 500
+        first = self.public_get(path, {**base, "page": 1})
+        if isinstance(first, list):
+            return first
+        if not isinstance(first, dict):
+            return [first]
+        rows: list[Any] = list(first.get("data") or [])
+        pages = int(first.get("pages") or 1)
+        for page in range(2, pages + 1):
+            resp = self.public_get(path, {**base, "page": page})
+            if isinstance(resp, dict):
+                rows.extend(resp.get("data") or [])
+        return rows
+
 
 def _with_query(path: str, params: dict[str, Any] | None) -> str:
     if not params:

@@ -217,10 +217,13 @@ def register(mcp: Any, ctx: ServerContext) -> None:
     def find_gpu_availability(region: str | None = None) -> dict[str, Any]:
         try:
             types = _data_list(ctx.client.cached_get("/linode/types"))
+            # Availability is paginated across several pages. Fetch every page or
+            # the cross-reference silently misses plans whose rows are not on
+            # page 1 (the bug that made every plan look out of stock).
             if region:
-                avail_rows = _data_list(ctx.client.public_get(f"/regions/{region}/availability"))
+                avail_rows = ctx.client.public_get_all(f"/regions/{region}/availability")
             else:
-                avail_rows = _data_list(ctx.client.public_get("/regions/availability"))
+                avail_rows = ctx.client.public_get_all("/regions/availability")
         except Exception as exc:
             raise map_api_error(exc) from exc
 
@@ -230,7 +233,9 @@ def register(mcp: Any, ctx: ServerContext) -> None:
             if not isinstance(row, dict) or not row.get("available"):
                 continue
             plan = row.get("plan")
-            reg = row.get("region")
+            # The per-region endpoint omits the region field, so fall back to the
+            # requested region; otherwise single-region lookups drop every row.
+            reg = row.get("region") or region
             if plan is None or reg is None:
                 continue
             avail_map.setdefault(plan, [])

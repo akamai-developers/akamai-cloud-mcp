@@ -41,3 +41,7 @@ All notable changes to this project are documented here. The format follows
 - LKE tools: `list_lke_clusters`, `get_lke_cluster` (composes node pools, API
   endpoints, control plane ACL, and dashboard URL), `list_kubernetes_versions`.
   The kubeconfig is never read or returned.
+- Object Storage tools: `list_object_storage_buckets`,
+  `list_object_storage_endpoints`, `get_object_storage_transfer`,
+  `list_object_storage_quotas`. Access and secret keys are never returned and
+  there is no key-listing tool.

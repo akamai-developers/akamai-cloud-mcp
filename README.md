@@ -156,6 +156,14 @@ not fetch the kubeconfig endpoint, the allowlist serializer does not include the
 field, and the recursive scrub is the backstop. Asking for the kubeconfig will
 not surface it.
 
+## Object Storage
+
+The `object_storage` domain lists buckets (optionally by region), lists endpoints
+(using the current endpoints API, not the deprecated clusters one), reports
+network transfer for the billing period, and lists the Object Storage quotas,
+which are the only quota API Linode exposes. Access and secret keys are never
+returned and there is no key-listing tool.
+
 ## Read-only and scrubbing guarantees
 
 - Every tool is annotated `readOnlyHint: true`.

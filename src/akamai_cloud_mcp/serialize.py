@@ -117,6 +117,25 @@ def serialize_volume(obj: Any) -> dict[str, Any]:
     return pick(obj, VOLUME_FIELDS)
 
 
+# Object Storage bucket allowlist. No access/secret key fields, ever.
+OBJECT_STORAGE_BUCKET_FIELDS = [
+    "label",
+    "region",
+    "cluster",
+    "hostname",
+    "s3_endpoint",
+    "endpoint_type",
+    "created",
+    "size",
+    "objects",
+]
+
+
+def serialize_bucket(obj: Any) -> dict[str, Any]:
+    """Allowlist-serialize an Object Storage bucket. Never includes key material."""
+    return pick(obj, OBJECT_STORAGE_BUCKET_FIELDS)
+
+
 # LKE cluster allowlist. kubeconfig is DELIBERATELY absent and must never be added.
 LKE_CLUSTER_FIELDS = [
     "id",

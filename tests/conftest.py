@@ -289,10 +289,58 @@ LKE_ACL = {"acl": {"enabled": True, "addresses": {"ipv4": ["203.0.113.0/24"]}}}
 LKE_DASHBOARD = {"url": "https://555.us-east.linodelke.net/dashboard"}
 LKE_VERSIONS = {"data": [{"id": "1.31"}, {"id": "1.30"}]}
 
+# Object Storage fixtures. Buckets carry planted key material that must not leak.
+_FAKE_ACCESS_KEY = "AKFAKE1234567890OBJ"
+_FAKE_SECRET_KEY = "abcdEFGH1234567890secretkeymaterialxyz99"
+
+OBJ_BUCKETS = {
+    "data": [
+        {
+            "label": "assets",
+            "region": "us-east",
+            "cluster": "us-east-1",
+            "hostname": "assets.us-east-1.linodeobjects.com",
+            "s3_endpoint": "us-east-1.linodeobjects.com",
+            "endpoint_type": "E1",
+            "created": "2026-01-01T00:00:00",
+            "size": 10485760,
+            "objects": 42,
+            # Planted secrets: must never appear in output.
+            "access_key": _FAKE_ACCESS_KEY,
+            "secret_key": _FAKE_SECRET_KEY,
+        }
+    ]
+}
+
+OBJ_ENDPOINTS = {
+    "data": [
+        {"region": "us-east", "endpoint_type": "E1", "s3_endpoint": "us-east-1.linodeobjects.com"}
+    ]
+}
+
+OBJ_TRANSFER = {"used": 123456789, "quota": 1099511627776, "billable": 0}
+
+OBJ_QUOTAS = {
+    "data": [
+        {
+            "quota_id": "obj-buckets-us-east",
+            "quota_name": "Number of buckets",
+            "endpoint_type": "E1",
+            "s3_endpoint": "us-east-1.linodeobjects.com",
+            "quota_limit": 1000,
+            "resource_metric": "bucket",
+        }
+    ]
+}
+
 _GET_MAP = {
     "/linode/instances": INSTANCES,
     "/linode/instances/111": INSTANCE_ONE,
     "/volumes": VOLUMES,
+    "/object-storage/buckets": OBJ_BUCKETS,
+    "/object-storage/endpoints": OBJ_ENDPOINTS,
+    "/object-storage/transfer": OBJ_TRANSFER,
+    "/object-storage/quotas": OBJ_QUOTAS,
     "/lke/clusters": LKE_CLUSTERS,
     "/lke/clusters/555": LKE_CLUSTER_ONE,
     "/lke/clusters/555/pools": LKE_POOLS,
